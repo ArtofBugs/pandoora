@@ -1,6 +1,6 @@
 # pandoora
 
-A task app with a focus on letting yourself reward your hard work and visualizing it.
+A task app with a focus on rewarding yourself after working hard, avoiding the distraction of dreading future work, and visualizing all of it.
 
 ## Setup
 
@@ -17,6 +17,8 @@ A task app with a focus on letting yourself reward your hard work and visualizin
     - Compare to actual number of blocks used on that task
       - Future: allow partial blocks if the task was finished early
       - Future: allow manually editing number of blocks used
+  - Due date
+  - Description (good place to put links to instructions, resources, drafting docs needed - so you don't need to go find all the pages to open for the task)
   - Future: different colors/categories for tasks
   - Future: keep a history of the number of focus blocks and the planned times for each task, as well as the actual final number of blocks it took and when
 - Focus blocks: a block of time dedicated to work
@@ -43,10 +45,15 @@ A task app with a focus on letting yourself reward your hard work and visualizin
   - Show focus blocks assigned each day
   - Sidebar to show focus and reward blocks not yet assigned
     - Includes blocks assigned in the past but not used
+  - Sidebar to show tasks not yet assigned to days and/or focus blocks
+    - Future: allow assigning tasks to a period (days or hours) first
 - Locked view: screen to block off calendar view
   - Hide calendar view during a focus block if locking is enabled
   - Hide calendar view during a reward block if locking is enabled
-  - Future: configure appearance of locked screen (clock/countdown to end of block? wallpaper?)
+  - Expandable to show details of active task/reward
+    - Links should be clickable!
+  - Expandable to show amount of time remaining before unlock
+  - Future: configure appearance of locked screen (clock/countdown to end of block? wallpaper? how much of the task details?)
   - Configure a long passphrase to enter to unlock in emergencies
 - Future: planned work periods for the day + progress bar based on current time
 - Future: export current state (including tasks, blocks, etc.) to JSON
