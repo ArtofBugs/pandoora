@@ -23,6 +23,8 @@ A task app with a focus on rewarding yourself after working hard, avoiding the d
     - Should colors/categories be global (assignable to any task, event, block, etc.) or defined for each type?
     - Allow multiple colors/categories for one task
   - Future: keep a history of the number of focus blocks and the planned times for each task, as well as the actual final number of blocks it took and when
+    - Future of the future: color-coding for tasks to show whether they were finished early, on-time, or later than planned (or if plans were shifted)
+    - Option to increase reward for finishing early or decrease reward for finishing late
 - Set event: a task that happens at a set time in the day (e.g., a synchronous class, a meeting, etc.)
   - Can have a reward amount, but not required
   - Can have block estimate, but not required
