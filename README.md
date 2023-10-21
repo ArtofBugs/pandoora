@@ -20,7 +20,16 @@ A task app with a focus on rewarding yourself after working hard, avoiding the d
   - Due date
   - Description (good place to put links to instructions, resources, drafting docs needed - so you don't need to go find all the pages to open for the task)
   - Future: different colors/categories for tasks
+    - Should colors/categories be global (assignable to any task, event, block, etc.) or defined for each type?
+    - Allow multiple colors/categories for one task
   - Future: keep a history of the number of focus blocks and the planned times for each task, as well as the actual final number of blocks it took and when
+- Set event: a task that happens at a set time in the day (e.g., a synchronous class, a meeting, etc.)
+  - Can have a reward amount, but not required
+  - Can have block estimate, but not required
+  - Start time
+  - Can have end time
+  - Description
+  - Future: colors/categories
 - Focus blocks: a block of time dedicated to work
   - Configure the amount of time in each block (e.g., one hour, half an hour)
     - Future: if the time per block changes, only change it for future blocks; provide an indicator/note?
