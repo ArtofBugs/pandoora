@@ -1,5 +1,6 @@
 {
   "dependencies": {
-    "fullcalendar-scheduler": "^6.1.9"
+    "fullcalendar-scheduler": "^6.1.9",
+    "http-server": "^14.1.1"
   }
 }
