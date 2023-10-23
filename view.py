@@ -1,6 +1,6 @@
 import calendar
 from datetime import datetime
-from datetime import date
+
 
 def show_month():
     print(calendar.month(

@@ -1,9 +1,18 @@
-import calendar
 import sqlite3
 
-from functions import *
+from view import *
+from tasks import *
+from events import *
+from current import *
+
+
+def show_menu():
+
+    for n in range(len(menu)):
+        print(str(n+1) + "." + menu[n])
 
 actions = [
+    show_menu,
     show_month,
     show_week,
     show_focus_blocks,
@@ -26,6 +35,7 @@ actions = [
 ]
 
 menu = [
+    "Show menu",
     "Show month",
     "Show week",
     "Show focus blocks",
@@ -67,10 +77,6 @@ def prompt():
 
         actions[int(choice)-1]()
 
-def show_menu():
-
-    for n in range(len(menu)):
-        print(str(n+1) + "." + menu[n])
 
 def main():
     show_menu()
