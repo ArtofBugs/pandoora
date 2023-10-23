@@ -7,6 +7,13 @@ except AssertionError:
     print("Error initializing config database. Exiting.")
     exit(1)
 
+
+def show_focus_blocks():
+    print("Not yet implemented")
+
+def show_reward_blocks():
+    print("Not yet implemented")
+
 def activate_focus_block():
     print("Not yet implemented")
 

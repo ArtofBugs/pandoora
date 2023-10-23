@@ -9,8 +9,7 @@ def show_set_events():
 
 def show_specific_set_event():
     name = input("Event name (required): ")
-    print(cursor.execute(
-        "SELECT name, description, start_date, start_time, end_date, end_time, reward FROM events WHERE name = ?", (name)).fetchall())
+    print(cursor.execute("SELECT name, description, start_date, start_time, end_date, end_time, reward FROM events WHERE name = ?", (name)).fetchall())
 
 def add_set_event():
     name = input("Event name (required): ")
@@ -20,7 +19,10 @@ def add_set_event():
     end_date = input("End Date: ")
     end_time = input("End Time: ")
     reward = input("Reward Level: ")
-    print(cursor.execute(f"INSERT INTO events VALUES ('{name}', '{description}', '{start_date}', '{start_time}', '{end_date}', '{end_time}', '{reward}')"))
+    cursor.execute(f"INSERT INTO events VALUES ('{name}', '{description}', '{start_date}', '{start_time}', '{end_date}', '{end_time}', '{reward}')")
 
 def edit_set_event():
+    print("Not yet implemented")
+
+def delete_set_event():
     print("Not yet implemented")
