@@ -19,7 +19,6 @@ function StoreBankCard(props) {
     return;
   }
   const [toUse, setToUse] = useState(0);
-  const [valid, setValid] = useState(false);
   return (
     <div className="card">
       <h3 className="card-title">{props.data.name}</h3>
@@ -35,7 +34,9 @@ function StoreBankCard(props) {
         <button
           className="card-actions justify-end btn"
           onClick={() => {
-            valid && useReward(props.id, toUse);
+            toUse >= 0 &&
+              toUse <= props.data.claimed &&
+              useReward(props.id, toUse);
           }}
         >
           Use
@@ -56,7 +57,6 @@ function StoreBankCard(props) {
             }}
             onChange={(e) => {
               setToUse(e.target.value);
-              setValid(e.target.checkValidity());
             }}
           ></input>
         </button>

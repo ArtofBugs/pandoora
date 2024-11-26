@@ -15,8 +15,8 @@ async function addStore(name, price, quantity) {
   try {
     await addDoc(collection(getDb(), "store"), {
       name: name,
-      price: price,
-      available: quantity,
+      price: Number(price),
+      available: Number(quantity),
       claimed: 0,
     });
   } catch (e) {
@@ -100,7 +100,6 @@ function EditableCell(props) {
 
 function StoreRow(props) {
   const [toClaim, setToClaim] = useState(0);
-  const [valid, setValid] = useState(false);
   return (
     <tr>
       <EditableCell
@@ -135,7 +134,9 @@ function StoreRow(props) {
             className="btn"
             htmlFor={props.id}
             onClick={() => {
-              valid && claimStore(props.id, toClaim);
+              toClaim >= 0 &&
+                toClaim <= props.data.available &&
+                claimStore(props.id, toClaim);
             }}
           >
             Claim
@@ -156,9 +157,8 @@ function StoreRow(props) {
               }}
               onChange={(e) => {
                 setToClaim(e.target.value);
-                setValid(e.target.checkValidity());
               }}
-            ></input>
+            />
           </button>
         </form>
       </td>
@@ -178,7 +178,6 @@ export default function StoreTable(props) {
   const [newName, setNewName] = useState("");
   const [newPrice, setNewPrice] = useState(0);
   const [newQuantity, setNewQuantity] = useState(0);
-  const [valid, setValid] = useState(false);
 
   console.log(props.value && props.value.docs);
   //   const [newDescription, setNewDescription] = useState("");
@@ -250,7 +249,9 @@ export default function StoreTable(props) {
                   htmlFor="storeAdd"
                   type="submit"
                   onClick={() => {
-                    valid && addStore(newName, newPrice, newQuantity);
+                    newPrice >= 0 &&
+                      newQuantity >= 0 &&
+                      addStore(newName, newPrice, newQuantity);
                   }}
                 >
                   Add
@@ -270,7 +271,6 @@ export default function StoreTable(props) {
                     }}
                     onChange={(e) => {
                       setNewQuantity(e.target.value);
-                      setValid(e.target.checkValidity());
                     }}
                   ></input>
                 </button>
