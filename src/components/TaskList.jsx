@@ -19,6 +19,7 @@ import {
   query,
   where,
   getDocs,
+  deleteField,
 } from "firebase/firestore";
 import { useDocument } from "react-firebase-hooks/firestore";
 import { useCollection } from "react-firebase-hooks/firestore";
@@ -78,25 +79,28 @@ function MoveMenuButton(props) {
 
 function EditableField(props) {
   const [editing, setEditing] = useState(false);
-  const [content, setContent] = useState(
-    props.content || props.default_value || ""
-  );
+  const [content, setContent] = useState(props.content || "None");
   return (
     <div
-      onDoubleClick={() => {
+      onDoubleClick={(e) => {
         setEditing(true);
         // Update to latest content
         setContent(props.content);
       }}
-      onBlur={() => {
-        setEditing(false);
-        updateTask(props.id, props.field, content, props.type);
+      onMouseDown={(e) => {
+        e.stopPropagation();
+      }}
+      onBlur={(e) => {
+        if (e.target.checkValidity()) {
+          updateTask(props.id, props.field, content, props.type);
+          setEditing(false);
+        }
       }}
     >
       {editing ? (
         <input
           id={props.id}
-          type="text"
+          type={props.type}
           value={content}
           onChange={(e) => {
             setContent(e.target.value);
@@ -131,32 +135,38 @@ function Task(props) {
           <label
             htmlFor={value.id}
             className={data.completed && "line-through"}
+            onClick={(e) => e.preventDefault()}
           >
-            {data.name || `Untitled task ${value.id}`}
+            <EditableField
+              id={value.id}
+              field="name"
+              content={data.name || `Untitled task ${value.id}`}
+              type="text"
+            />
             <p>
               Due date:
               <EditableField
                 id={value.id}
                 field="due_date"
                 content={
-                  data.due_date && data.due_date.toDate().toLocaleDateString()
+                  (data.due_date &&
+                    data.due_date.toDate().toLocaleDateString()) ||
+                  "None"
                 }
-                default_value="None"
-                type="timestamp"
+                type="date"
               />
             </p>
             <p>
               Due time:
               <EditableField
                 id={value.id}
-                field="due_date"
+                field="due_time"
                 content={
                   data.due_time
                     ? data.due_time.toDate().toLocaleTimeString()
-                    : undefined
+                    : "None"
                 }
-                default_value="None"
-                type="timestamp"
+                type="time"
               />
             </p>
             <MoveMenuButton docRef={props.docRef} />
@@ -248,15 +258,24 @@ async function deleteTask(docRef) {
 }
 
 async function updateTask(id, field, content, type) {
-  if (type == "timestamp_date") {
+  console.log(content);
+  if ((type == "date" || type == "time") && content == "") {
+    console.log("Empty date or time");
+    await updateDoc(doc(getDb(), "tasks", id), {
+      [field]: deleteField(),
+    });
+    return;
+  }
+  if (type == "date") {
     content = new Date(content);
-  } else if (type == "timestamp_time") {
+  } else if (type == "time") {
     // FIXME: Time parsing probably doesn't work
-    content = new Date("1970-01-01T" + content);
+    content = new Date("1970-01-01 " + content);
   } else if (type == "number") {
     content = Number(content);
   }
   try {
+    console.log(`Updating ${field} to ${content}`);
     await updateDoc(doc(getDb(), "tasks", id), {
       [field]: content,
     });
