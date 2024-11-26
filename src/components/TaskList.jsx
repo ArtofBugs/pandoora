@@ -20,6 +20,7 @@ import {
   where,
   getDocs,
   deleteField,
+  getDoc,
 } from "firebase/firestore";
 import { useDocument } from "react-firebase-hooks/firestore";
 import { useCollection } from "react-firebase-hooks/firestore";
@@ -116,7 +117,6 @@ function EditableField(props) {
 function Task(props) {
   const [value, loading, error] = useDocument(props.docRef);
   let data = value && value.exists() ? value.data() : null;
-  console.log(data);
   return (
     <li className="space-x-2">
       {loading && <p>...</p>}
@@ -194,7 +194,13 @@ function Task(props) {
   );
 }
 
-async function deleteOldRefs(docRef) {
+async function deleteOldRefs(docRef, keepSubtasks = true) {
+  const doc = await getDoc(docRef);
+  let subtasks = [];
+  if (!keepSubtasks) {
+    subtasks = doc.data().tasks;
+  }
+
   const qTasks = query(
     collection(getDb(), "tasks"),
     where("tasks", "array-contains", docRef)
@@ -202,6 +208,12 @@ async function deleteOldRefs(docRef) {
   const oldTasksParentSnapshot = await getDocs(qTasks);
 
   oldTasksParentSnapshot.forEach(async (oldParent) => {
+    subtasks.forEach(async (subtask) => {
+      await updateDoc(oldParent.ref, {
+        tasks: arrayUnion(subtask),
+      });
+    });
+
     await updateDoc(oldParent.ref, {
       tasks: arrayRemove(docRef),
     });
@@ -214,6 +226,12 @@ async function deleteOldRefs(docRef) {
   const oldListsParentSnapshot = await getDocs(qLists);
 
   oldListsParentSnapshot.forEach(async (oldParent) => {
+    subtasks.forEach(async (subtask) => {
+      await updateDoc(oldParent.ref, {
+        tasks: arrayUnion(subtask),
+      });
+    });
+
     await updateDoc(oldParent.ref, {
       tasks: arrayRemove(docRef),
     });
@@ -250,7 +268,7 @@ async function moveTask(docRef, newParentRef) {
 
 async function deleteTask(docRef) {
   try {
-    await deleteOldRefs(docRef);
+    await deleteOldRefs(docRef, false);
     await deleteDoc(docRef);
   } catch (e) {
     console.error("Error deleting document:", e);
@@ -258,9 +276,8 @@ async function deleteTask(docRef) {
 }
 
 async function updateTask(id, field, content, type) {
-  console.log(content);
   if ((type == "date" || type == "time") && content == "") {
-    console.log("Empty date or time");
+    console.log("Edited to empty date or time");
     await updateDoc(doc(getDb(), "tasks", id), {
       [field]: deleteField(),
     });
