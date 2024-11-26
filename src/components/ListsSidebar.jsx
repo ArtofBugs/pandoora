@@ -10,8 +10,48 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { NavLink } from "react-router-dom";
 
-import { collection, doc, addDoc, deleteDoc } from "firebase/firestore";
+import {
+  collection,
+  doc,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+} from "firebase/firestore";
 import getDb from "../firebase/initialize";
+
+
+function EditableField(props) {
+  const [editing, setEditing] = useState(false);
+  const [content, setContent] = useState(props.content || "None");
+  return (
+    <div
+      onDoubleClick={(e) => {
+        setEditing(true);
+        // Update to latest content
+        setContent(props.content);
+      }}
+      onBlur={(e) => {
+        if (e.target.checkValidity()) {
+          updateList(props.id, props.field, content, props.type);
+          setEditing(false);
+        }
+      }}
+    >
+      {editing ? (
+        <input
+          id={props.id}
+          type={props.type}
+          value={content}
+          onChange={(e) => {
+            setContent(e.target.value);
+          }}
+        />
+      ) : (
+        <p>{props.content}</p>
+      )}
+    </div>
+  );
+}
 
 function ListEntry(props) {
   // FontAwesome doesn't have an eye-closed icon :(
@@ -23,7 +63,12 @@ function ListEntry(props) {
         <FontAwesomeIcon icon={faEye} className="swap-on" />
         <FontAwesomeIcon icon={faEyeSlash} className="swap-off" />
       </label>
-      <p>{props.data.name || `Untitled list ${props.id}`}</p>
+      <EditableField
+        id={props.id}
+        field="name"
+        content={props.data.name || `Untitled list ${props.id}`}
+        type="text"
+      />
       <button
         onClick={() => {
           deleteList(props.id);
@@ -48,6 +93,16 @@ async function addList(name) {
   }
 }
 
+async function updateList(id, field, content, type) {
+  try {
+    console.log(`Updating ${field} to ${content}`);
+    await updateDoc(doc(getDb(), "lists", id), {
+      [field]: content,
+    });
+  } catch (e) {
+    console.error("Error updating document:", e);
+  }
+}
 async function deleteList(id) {
   try {
     await deleteDoc(doc(getDb(), "lists", id));
