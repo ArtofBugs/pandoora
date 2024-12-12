@@ -33,7 +33,11 @@ function MoveMenu(props) {
   // Also don't allow moving to self
   const [value, loading, error] = useCollection(collection(getDb(), "tasks"));
   return (
-    <div ref={props.refs} style={props.style} className="menu menu-dropdown">
+    <div
+      ref={props.refs}
+      style={props.style}
+      className="menu menu-dropdown z-50 bg-slate-500"
+    >
       {error && <p>Error: {JSON.stringify(error)}</p>}
       {loading && <p>...</p>}
       {value &&
@@ -61,7 +65,7 @@ function MoveMenuButton(props) {
         onClick={() => {
           setShowMoveMenu(!showMoveMenu);
         }}
-        className="btn btn-ghost rounded-lg"
+        className="btn btn-ghost rounded-lg w-min grid-end-2"
         ref={refs.setReference}
       >
         <FontAwesomeIcon icon={faArrowRight} />
@@ -106,6 +110,8 @@ function EditableField(props) {
           onChange={(e) => {
             setContent(e.target.value);
           }}
+          autoFocus
+          className="input"
         />
       ) : (
         <div>{props.content}</div>
@@ -123,62 +129,68 @@ function Task(props) {
       {error && <p>Error: {JSON.stringify(error)}</p>}
       {data && (
         <>
-          <input
-            id={value.id}
-            type="checkbox"
-            className="checkbox"
-            checked={data.completed}
-            onChange={() =>
-              updateTask(value.id, "completed", !data.completed, "boolean")
-            }
-          />
-          <label
-            htmlFor={value.id}
-            className={data.completed && "line-through"}
-            onClick={(e) => e.preventDefault()}
-          >
-            <EditableField
+          <div className="menu h-min w-100 flex flex-row">
+            <input
               id={value.id}
-              field="name"
-              content={data.name || `Untitled task ${value.id}`}
-              type="text"
+              type="checkbox"
+              className="checkbox"
+              checked={data.completed}
+              onChange={() =>
+                updateTask(value.id, "completed", !data.completed, "boolean")
+              }
             />
-            <p>
-              Due date:
-              <EditableField
-                id={value.id}
-                field="due_date"
-                content={
-                  (data.due_date &&
-                    data.due_date.toDate().toLocaleDateString()) ||
-                  "None"
-                }
-                type="date"
-              />
-            </p>
-            <p>
-              Due time:
-              <EditableField
-                id={value.id}
-                field="due_time"
-                content={
-                  data.due_time
-                    ? data.due_time.toDate().toLocaleTimeString()
-                    : "None"
-                }
-                type="time"
-              />
-            </p>
-            <MoveMenuButton docRef={props.docRef} />
-            <button
-              onClick={() => {
-                deleteTask(props.docRef);
-              }}
-              className="btn btn-ghost rounded-lg"
+            <label
+              htmlFor={value.id}
+              className={
+                (data.completed ? "line-through " : "") +
+                "w-full flex flex-row gap-10"
+              }
+              onClick={(e) => e.preventDefault()}
             >
-              <FontAwesomeIcon icon={faTrashCan} />
-            </button>
-          </label>
+              <EditableField
+                id={value.id}
+                field="name"
+                content={data.name || `Untitled task ${value.id}`}
+                type="text"
+                className="w-full flex-grow"
+              />
+              <p>
+                Due date:
+                <EditableField
+                  id={value.id}
+                  field="due_date"
+                  content={
+                    (data.due_date &&
+                      data.due_date.toDate().toLocaleDateString()) ||
+                    "None"
+                  }
+                  type="date"
+                />
+              </p>
+              <p className="w-min">
+                Due time:
+                <EditableField
+                  id={value.id}
+                  field="due_time"
+                  content={
+                    data.due_time
+                      ? data.due_time.toDate().toLocaleTimeString()
+                      : "None"
+                  }
+                  type="time"
+                />
+              </p>
+              <MoveMenuButton docRef={props.docRef} />
+              <button
+                onClick={() => {
+                  deleteTask(props.docRef);
+                }}
+                className="btn btn-ghost rounded-lg w-min grid-end-1"
+              >
+                <FontAwesomeIcon icon={faTrashCan} />
+              </button>
+            </label>
+          </div>
           {data.tasks && (
             <>
               <ul>
@@ -306,32 +318,35 @@ function List(props) {
   const [newTask, setNewTask] = useState("");
   return (
     <Draggable>
-      <div className="menu bg-base-200 rounded-box w-56">
+      <div className="menu bg-base-200 rounded-box w-fit">
         <h1>{props.data.name || `Untitled list ${props.id}`}</h1>
-        <ul>
-          {props.data.tasks &&
-            props.data.tasks.map((taskRef) => (
-              <Task key={taskRef.id} docRef={taskRef} />
-            ))}
-        </ul>
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            addTask(newTask, props.id);
-          }}
-        >
-          <input
-            className="input"
-            type="text"
-            value={newTask}
-            onChange={(e) => {
-              setNewTask(e.target.value);
+        <div className="menu">
+          <ul className="menu">
+            {props.data.tasks &&
+              props.data.tasks.map((taskRef) => (
+                <Task key={taskRef.id} docRef={taskRef} />
+              ))}
+          </ul>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              addTask(newTask, props.id);
             }}
-          />
-          <button type="submit" className="btn btn-circle btn-outline">
-            <FontAwesomeIcon icon={faPlusCircle} />
-          </button>
-        </form>
+            className="flex justify-between w-100 gap-2"
+          >
+            <input
+              className="input w-full"
+              type="text"
+              value={newTask}
+              onChange={(e) => {
+                setNewTask(e.target.value);
+              }}
+            />
+            <button type="submit" className="btn btn-circle btn-outline">
+              <FontAwesomeIcon icon={faPlusCircle} />
+            </button>
+          </form>
+        </div>
 
         {/* <ul>
           <li>

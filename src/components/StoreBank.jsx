@@ -20,47 +20,49 @@ function StoreBankCard(props) {
   }
   const [toUse, setToUse] = useState(0);
   return (
-    <div className="card">
-      <h3 className="card-title">{props.data.name}</h3>
+    <div className="card bg-primary w-20">
       <div className="card-body">
+        <h3 className="card-title">{props.data.name}</h3>
         <p>Available: {props.data.claimed}</p>
-      </div>
 
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-        }}
-      >
-        <button
-          className="card-actions justify-end btn"
-          onClick={() => {
-            toUse >= 0 &&
-              toUse <= props.data.claimed &&
-              useReward(props.id, toUse);
-          }}
-        >
-          Use
-          <input
-            className="input input-bordered"
-            type="number"
-            id={props.id}
-            step={1}
-            min={0}
-            max={props.data.claimed}
-            value={toUse}
-            onClick={(e) => {
-              // Prevent clicking in the input box from submitting the button
-              e.stopPropagation();
-              // stopImmediatePropagation only works this way:
-              // https://stackoverflow.com/questions/24415631/reactjs-syntheticevent-stoppropagation-only-works-with-react-events
-              e.nativeEvent.stopImmediatePropagation();
+        <div className="card-actions justify-end">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
             }}
-            onChange={(e) => {
-              setToUse(e.target.value);
-            }}
-          ></input>
-        </button>
-      </form>
+          >
+            <button
+              className="card-actions justify-end btn"
+              onClick={() => {
+                toUse >= 0 &&
+                  toUse <= props.data.claimed &&
+                  useReward(props.id, toUse);
+              }}
+            >
+              Use
+              <input
+                className="input input-bordered"
+                type="number"
+                id={props.id}
+                step={1}
+                min={0}
+                max={props.data.claimed}
+                value={toUse}
+                onClick={(e) => {
+                  // Prevent clicking in the input box from submitting the button
+                  e.stopPropagation();
+                  // stopImmediatePropagation only works this way:
+                  // https://stackoverflow.com/questions/24415631/reactjs-syntheticevent-stoppropagation-only-works-with-react-events
+                  e.nativeEvent.stopImmediatePropagation();
+                }}
+                onChange={(e) => {
+                  setToUse(e.target.value);
+                }}
+              ></input>
+            </button>
+          </form>
+        </div>
+      </div>
     </div>
   );
 }
