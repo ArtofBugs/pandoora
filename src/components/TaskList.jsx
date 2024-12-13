@@ -134,7 +134,7 @@ function Task(props) {
       {error && <p>Error: {JSON.stringify(error)}</p>}
       {data && (
         <>
-          <label className="menu h-min rounded-lg flex flex-row w-full justify-stretch gap-x-5">
+          <label className="menu h-min rounded-lg flex flex-row w-full justify-between gap-x-5">
             <input
               id={"task-complete-" + value.id}
               type="checkbox"
@@ -147,7 +147,7 @@ function Task(props) {
             <div
               className={
                 (data.completed ? "line-through " : "") +
-                "w-full flex flex-row justify-between gap-x-5"
+                "flex flex-row flex-grow justify-between gap-x-5"
               }
             >
               <div className="w-full flex-grow">
