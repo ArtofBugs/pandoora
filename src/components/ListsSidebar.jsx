@@ -36,9 +36,11 @@ function EditableField(props) {
           setEditing(false);
         }
       }}
+      className="w-full"
     >
       {editing ? (
         <input
+          autoFocus
           id={props.id}
           type={props.type}
           value={content}
@@ -47,7 +49,7 @@ function EditableField(props) {
           }}
         />
       ) : (
-        <p>{props.content}</p>
+        <p className="text-left w-full">{props.content}</p>
       )}
     </div>
   );
@@ -57,7 +59,7 @@ function ListEntry(props) {
   // FontAwesome doesn't have an eye-closed icon :(
   // https://github.com/FortAwesome/Font-Awesome/issues/8283
   return (
-    <div className="label cursor-pointer space-x-2 btn-ghost btn-wide rounded-lg">
+    <div className="label cursor-pointer space-x-2 btn-ghost rounded-lg flex flex-row w-full">
       <label htmlFor={props.id} className="swap btn-circle btn-ghost">
         <input type="checkbox" id={props.id} />
         <FontAwesomeIcon icon={faEye} className="swap-on" />
@@ -115,8 +117,8 @@ async function deleteList(id) {
 export default function ListsSidebar(props) {
   const [newList, setNewList] = useState("");
   return (
-    <aside className="bg-base-200 h-screen p-2">
-      <br />
+    <aside className="bg-base-200 h-screen p-2 space-y-5 flex flex-col">
+      <div className="h-10" />
       {props.error && <p>Error: {JSON.stringify(error)}</p>}
       {props.loading && <p>Loading lists...</p>}
       {props.value && (
@@ -136,6 +138,7 @@ export default function ListsSidebar(props) {
               e.preventDefault();
               addList(newList);
             }}
+            className="flex justify-between gap-2"
           >
             <input
               className="input"
@@ -145,13 +148,13 @@ export default function ListsSidebar(props) {
                 setNewList(e.target.value);
               }}
             />
-            <button type="submit" className="btn btn-circle btn-outline">
-              <FontAwesomeIcon icon={faPlusCircle} />
+            <button type="submit" className="btn btn-circle">
+              <FontAwesomeIcon icon={faPlusCircle} size="lg" />
             </button>
           </form>
 
           <NavLink to="/store">
-            <button className="btn-primary btn-outline btn-wide">
+            <button className="btn-primary bg-slate-200 btn-outline rounded-lg p-3 w-full">
               Go to store
             </button>
           </NavLink>
