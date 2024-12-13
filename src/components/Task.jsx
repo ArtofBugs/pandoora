@@ -3,9 +3,11 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowRight, faTrashCan } from "@fortawesome/free-solid-svg-icons";
 import { useFloating } from "@floating-ui/react-dom";
 
+import { updateTask } from "./update-utils";
+import TaskPopup from "./TaskPopup";
+
 import {
   collection,
-  doc,
   updateDoc,
   deleteDoc,
   arrayUnion,
@@ -13,7 +15,6 @@ import {
   query,
   where,
   getDocs,
-  deleteField,
   getDoc,
 } from "firebase/firestore";
 import { useDocument, useCollection } from "react-firebase-hooks/firestore";
@@ -85,37 +86,6 @@ async function deleteOldRefs(docRef, keepSubtasks = true) {
   });
 }
 
-async function updateTask(id, field, content, type) {
-  console.log(content);
-  if (
-    ((type == "date" || type == "time") && content == "") ||
-    content == "None"
-  ) {
-    console.log("Edited to empty date or time");
-    await updateDoc(doc(getDb(), "tasks", id), {
-      [field]: deleteField(),
-    });
-    return;
-  }
-  if (type == "date") {
-    content = new Date(content + " 00:00:00");
-  } else if (type == "time") {
-    content = new Date("1970-01-01 " + content);
-  } else if (type == "number") {
-    content = Number(content);
-  } else {
-  }
-
-  try {
-    console.log(`Updating ${field} to ${content}`);
-    await updateDoc(doc(getDb(), "tasks", id), {
-      [field]: content,
-    });
-  } catch (e) {
-    console.error("Error updating document:", e);
-  }
-}
-
 function EditableField(props) {
   const [editing, setEditing] = useState(false);
   const [content, setContent] = useState(props.content || "None");
@@ -150,7 +120,7 @@ function EditableField(props) {
           className="input input-sm box-border w-full min-w-0"
         />
       ) : (
-        <div className="text-left text-wrap w-full">{props.content}</div>
+        <div className="text-left text-wrap w-fit">{props.content}</div>
       )}
     </div>
   );
@@ -283,6 +253,7 @@ export default function Task(props) {
               >
                 <FontAwesomeIcon icon={faTrashCan} />
               </button>
+              <TaskPopup data={data} id={value.id} />
             </div>
           </label>
           {data.tasks && (
