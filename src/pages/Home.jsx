@@ -123,7 +123,7 @@ function Menu() {
   const [locked, setLocked] = useState(false);
   return (
     <ul
-      className="menu menu-horizontal hover:bg-slate-700 rounded-md active:text-black focus-within:text-black hover:text-black"
+      className="menu menu-horizontal hover:bg-slate-700 rounded-md active:text-black focus-within:text-black hover:text-black absolute z-10 w-fit"
       style={{ color: "white" }}
     >
       <li>
@@ -159,10 +159,10 @@ function Menu() {
 // FIXME: How can I get the other stuff to not move up when the task details are shown?
 export default function Home() {
   return (
-    <div className="relative">
-      <Menu className="absolute z-10" />
-      <div className="hero">
-        <div className="hero-content flex-col text-center h-screen space-y-5 justify-center">
+    <div className="relative h-screen flex flex-col">
+      <Menu />
+      <div className="hero justify-center h-full">
+        <div className="hero-content flex-col text-center space-y-5 justify-center">
           <h1 className="text-5xl">Focus:</h1>
           <p className="text-8xl">Hello! Take a break!</p>
           <div className="collapse w-2/3">
