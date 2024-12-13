@@ -92,29 +92,31 @@ function EditableField(props) {
         // Update to latest content
         setContent(props.content);
       }}
-      onMouseDown={(e) => {
-        e.stopPropagation();
+      onClick={(e) => {
+        e.preventDefault();
       }}
       onBlur={(e) => {
         if (e.target.checkValidity()) {
           updateTask(props.id, props.field, content, props.type);
           setEditing(false);
+          e.stopPropagation();
         }
       }}
+      className="w-fit"
     >
       {editing ? (
         <input
+          autoFocus
           id={props.id}
           type={props.type}
           value={content}
           onChange={(e) => {
             setContent(e.target.value);
           }}
-          autoFocus
-          className="input"
+          className="input w-full"
         />
       ) : (
-        <div>{props.content}</div>
+        <div className="text-left text-wrap w-full">{props.content}</div>
       )}
     </div>
   );
@@ -124,14 +126,17 @@ function Task(props) {
   const [value, loading, error] = useDocument(props.docRef);
   let data = value && value.exists() ? value.data() : null;
   return (
-    <li className="space-x-2">
+    // stopPropagation() here prevents Draggable from triggering; see
+    // https://github.com/react-grid-layout/react-draggable/issues/728 and
+    // https://github.com/react-grid-layout/react-draggable/issues/666#issuecomment-1425663673
+    <li className="space-x-2" onMouseDown={(e) => e.stopPropagation()}>
       {loading && <p>...</p>}
       {error && <p>Error: {JSON.stringify(error)}</p>}
       {data && (
         <>
-          <div className="menu h-min w-100 flex flex-row">
+          <label className="menu h-min rounded-lg flex flex-row w-full justify-stretch gap-x-5">
             <input
-              id={value.id}
+              id={"task-complete-" + value.id}
               type="checkbox"
               className="checkbox"
               checked={data.completed}
@@ -139,22 +144,21 @@ function Task(props) {
                 updateTask(value.id, "completed", !data.completed, "boolean")
               }
             />
-            <label
-              htmlFor={value.id}
+            <div
               className={
                 (data.completed ? "line-through " : "") +
-                "w-full flex flex-row gap-10"
+                "w-full flex flex-row justify-between gap-x-5"
               }
-              onClick={(e) => e.preventDefault()}
             >
-              <EditableField
-                id={value.id}
-                field="name"
-                content={data.name || `Untitled task ${value.id}`}
-                type="text"
-                className="w-full flex-grow"
-              />
-              <p>
+              <div className="w-full flex-grow">
+                <EditableField
+                  id={value.id}
+                  field="name"
+                  content={data.name || `Untitled task ${value.id}`}
+                  type="text"
+                />
+              </div>
+              <p className="min-w-20">
                 Due date:
                 <EditableField
                   id={value.id}
@@ -167,7 +171,7 @@ function Task(props) {
                   type="date"
                 />
               </p>
-              <p className="w-min">
+              <p className="w-200 min-w-20">
                 Due time:
                 <EditableField
                   id={value.id}
@@ -189,8 +193,8 @@ function Task(props) {
               >
                 <FontAwesomeIcon icon={faTrashCan} />
               </button>
-            </label>
-          </div>
+            </div>
+          </label>
           {data.tasks && (
             <>
               <ul>
