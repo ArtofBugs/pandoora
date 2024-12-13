@@ -33,7 +33,7 @@ export default function Home() {
       <div className="hero">
         <div className="hero-content flex-col text-center h-screen space-y-5 justify-center">
           <h1 className="text-5xl">Focus:</h1>
-          <p className="text-8xl">Task title</p>
+          <p className="text-8xl">Hello! Take a break!</p>
           <div className="collapse w-2/3">
             <input type="checkbox" />
             <FontAwesomeIcon
@@ -42,15 +42,13 @@ export default function Home() {
             />
             <div className="collapse-content text-left">
               <p>
-                Description: Task details would go here, but this part doesn't
-                work yet - everything is still hardcoded right now.
+                Description: This part doesn't really work yet, but hopefully it
+                will soon!
               </p>
               <br />
               <div>
-                <p>Links:</p>
-                <a className="link" href="https://example.com">
-                  https://example.com
-                </a>
+                <p>Notes:</p>
+                <textarea defaultValue="https://example.com" />
               </div>
             </div>
           </div>
