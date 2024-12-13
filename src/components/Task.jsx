@@ -129,29 +129,35 @@ function EditableField(props) {
 function MoveMenu(props) {
   // TODO: split between tasks in current list and just other lists;
   // don't allow moving to tasks in other lists
-  // Also don't allow moving to self
   const [value, loading, error] = useCollection(collection(getDb(), "tasks"));
   return (
     <div
       ref={props.refs}
       style={props.style}
-      className="menu menu-dropdown z-50 bg-slate-500"
+      className="menu menu-dropdown z-50 bg-slate-500 gap-2"
+      autoFocus
+      onBlur={() => {
+        props.setShowMoveMenu(false);
+      }}
     >
       {error && <p>Error: {JSON.stringify(error)}</p>}
       {loading && <p>...</p>}
       {value &&
-        value.docs.map((doc) => (
-          <button
-            key={`move_menu_${doc.id}`}
-            className="btn"
-            onClick={() => {
-              moveTask(props.docRef, doc.ref);
-              props.setShowMoveMenu(false);
-            }}
-          >
-            {doc.data().name || `Untitled task ${doc.id}`}
-          </button>
-        ))}
+        value.docs.map(
+          (doc) =>
+            doc.id != props.docRef.id && (
+              <button
+                key={`move_menu_${doc.id}`}
+                className="btn"
+                onClick={() => {
+                  moveTask(props.docRef, doc.ref);
+                  props.setShowMoveMenu(false);
+                }}
+              >
+                {doc.data().name || `Untitled task ${doc.id}`}
+              </button>
+            )
+        )}
     </div>
   );
 }
