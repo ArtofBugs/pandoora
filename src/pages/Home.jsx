@@ -11,26 +11,98 @@ import {
 import { NavLink } from "react-router-dom";
 import { faCalendar } from "@fortawesome/free-regular-svg-icons";
 
-function Countdown(props) {
-  const {
-    totalSeconds,
-    seconds,
-    minutes,
-    hours,
-    days,
-    isRunning,
-    start,
-    pause,
-    resume,
-    restart,
-  } = useTimer({
-    expiryTimestamp,
-    onExpire: () => console.warn("onExpire called"),
-  });
-}
+import { useTimer } from "react-timer-hook";
 
 function CountdownInput(props) {
-  return <input type="time" />;
+  const [hours, setHours] = useState(0);
+  const [minutes, setMinutes] = useState(0);
+  const [seconds, setSeconds] = useState(0);
+  return (
+    <div className="flex flex-row focus:text-black hover:text-black">
+      <input
+        type="number"
+        value={hours.toLocaleString(undefined, { minimumIntegerDigits: 2 })}
+        onChange={(e) => setHours(e.target.value)}
+        className="w-20"
+      />
+      <p className="text-white">:</p>
+      <input
+        type="number"
+        value={minutes.toLocaleString(undefined, { minimumIntegerDigits: 2 })}
+        onChange={(e) => setMinutes(e.target.value)}
+        className="w-20"
+      />
+      <p className="text-white">:</p>
+      <input
+        type="number"
+        value={seconds.toLocaleString(undefined, { minimumIntegerDigits: 2 })}
+        onChange={(e) => setSeconds(e.target.value)}
+        className="w-20"
+      />
+      <button
+        className="text-white"
+        onClick={(e) => {
+          props.setEditing(false);
+          const time = new Date();
+          time.setHours(
+            time.getHours() + Number(hours),
+            time.getMinutes() + Number(minutes),
+            time.getSeconds() + Number(seconds)
+          );
+          console.log(time);
+          props.setLocked(true);
+          props.restart(time);
+        }}
+      >
+        Save
+      </button>
+    </div>
+  );
+}
+
+function Countdown(props) {
+  const [editing, setEditing] = useState(false);
+  const startTime = Date.now();
+  const { seconds, minutes, hours, isRunning, start, restart } = useTimer({
+    startTime,
+    autoStart: false,
+    onExpire: () => {
+      console.log("Timer ended");
+      props.setLocked(false);
+    },
+  });
+  return editing ? (
+    <CountdownInput
+      setLocked={props.setLocked}
+      setEditing={setEditing}
+      restart={restart}
+      start={start}
+    />
+  ) : (
+    <div
+      onDoubleClick={() => {
+        setEditing(true);
+      }}
+    >
+      {isRunning ? (
+        <div>
+          <span>
+            {hours.toLocaleString(undefined, { minimumIntegerDigits: 2 })}
+          </span>
+          :
+          <span>
+            {minutes.toLocaleString(undefined, { minimumIntegerDigits: 2 })}
+          </span>
+          :
+          <span>
+            {seconds.toLocaleString(undefined, { minimumIntegerDigits: 2 })}
+          </span>
+        </div>
+      ) : (
+        <p>Locked</p>
+      )}
+    </div>
+  );
 }
 
 function Lock(props) {
@@ -38,7 +110,7 @@ function Lock(props) {
     <label className="swap swap-rotate">
       <input
         type="checkbox"
-        value={props.locked}
+        checked={props.locked}
         onChange={() => props.setLocked(!props.locked)}
       />
       <FontAwesomeIcon icon={faLockOpen} className="swap-off white" />
@@ -51,7 +123,7 @@ function Menu() {
   const [locked, setLocked] = useState(false);
   return (
     <ul
-      className="menu menu-horizontal hover:bg-slate-700 rounded-md"
+      className="menu menu-horizontal hover:bg-slate-700 rounded-md active:text-black focus-within:text-black hover:text-black"
       style={{ color: "white" }}
     >
       <li>
@@ -59,7 +131,7 @@ function Menu() {
       </li>
       {locked ? (
         <li>
-          <CountdownInput />
+          <Countdown setLocked={setLocked} />
         </li>
       ) : (
         <>
