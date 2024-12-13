@@ -329,8 +329,10 @@ function List(props) {
     return;
   }
   return (
-    <Draggable>
-      <div className="menu bg-base-200 rounded-box w-[50vw]">
+    // I don't know why "body" works; it wasn't in the docs, but I found it in this example:
+    // https://github.com/react-grid-layout/react-draggable/issues/535
+    <Draggable bounds="body">
+      <div className="menu bg-base-200 rounded-box w-[50vw] absolute top-auto left-auto">
         <h1>{props.data.name || `Untitled list ${props.id}`}</h1>
         <div className="menu">
           <ul className="menu">
