@@ -11,6 +11,28 @@ import {
 import { NavLink } from "react-router-dom";
 import { faCalendar } from "@fortawesome/free-regular-svg-icons";
 
+function Countdown(props) {
+  const {
+    totalSeconds,
+    seconds,
+    minutes,
+    hours,
+    days,
+    isRunning,
+    start,
+    pause,
+    resume,
+    restart,
+  } = useTimer({
+    expiryTimestamp,
+    onExpire: () => console.warn("onExpire called"),
+  });
+}
+
+function CountdownInput(props) {
+  return <input type="time" />;
+}
+
 function Lock(props) {
   return (
     <label className="swap swap-rotate">
@@ -19,16 +41,8 @@ function Lock(props) {
         value={props.locked}
         onChange={() => props.setLocked(!props.locked)}
       />
-      <FontAwesomeIcon
-        icon={faLockOpen}
-        className="swap-off white"
-        style={{ color: "white" }}
-      />
-      <FontAwesomeIcon
-        icon={faLock}
-        className="swap-on"
-        style={{ color: "white" }}
-      />
+      <FontAwesomeIcon icon={faLockOpen} className="swap-off white" />
+      <FontAwesomeIcon icon={faLock} className="swap-on" />
     </label>
   );
 }
@@ -36,25 +50,32 @@ function Lock(props) {
 function Menu() {
   const [locked, setLocked] = useState(false);
   return (
-    <ul className="menu menu-horizontal hover:bg-slate-700 rounded-md">
+    <ul
+      className="menu menu-horizontal hover:bg-slate-700 rounded-md"
+      style={{ color: "white" }}
+    >
       <li>
         <Lock locked={locked} setLocked={setLocked} />
       </li>
-      {!locked && (
+      {locked ? (
+        <li>
+          <CountdownInput />
+        </li>
+      ) : (
         <>
           <li>
             <NavLink to="/tasks">
-              <FontAwesomeIcon icon={faTasks} style={{ color: "white" }} />
+              <FontAwesomeIcon icon={faTasks} />
             </NavLink>
           </li>
           <li>
             <NavLink to="/calendar">
-              <FontAwesomeIcon icon={faCalendar} style={{ color: "white" }} />
+              <FontAwesomeIcon icon={faCalendar} />
             </NavLink>
           </li>
           <li>
             <NavLink to="/settings">
-              <FontAwesomeIcon icon={faCog} style={{ color: "white" }} />
+              <FontAwesomeIcon icon={faCog} />
             </NavLink>
           </li>
         </>
