@@ -134,7 +134,7 @@ async function deleteList(id) {
 export default function ListsSidebar(props) {
   const [newList, setNewList] = useState("");
   return (
-    <aside className="bg-base-200 h-screen p-2 space-y-5 flex flex-col">
+    <aside className="bg-base-200 p-2 space-y-5 flex flex-col">
       <div className="h-10" />
       {props.error && <p>Error: {JSON.stringify(error)}</p>}
       {props.loading && <p>Loading lists...</p>}

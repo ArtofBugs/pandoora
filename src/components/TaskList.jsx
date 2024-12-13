@@ -65,7 +65,7 @@ function MoveMenuButton(props) {
         onClick={() => {
           setShowMoveMenu(!showMoveMenu);
         }}
-        className="btn btn-ghost rounded-lg w-min grid-end-2"
+        className="btn btn-ghost rounded-lg w-min"
         ref={refs.setReference}
       >
         <FontAwesomeIcon icon={faArrowRight} />
@@ -189,7 +189,7 @@ function Task(props) {
                 onClick={() => {
                   deleteTask(props.docRef);
                 }}
-                className="btn btn-ghost rounded-lg w-min grid-end-1"
+                className="btn btn-ghost rounded-lg w-min"
               >
                 <FontAwesomeIcon icon={faTrashCan} />
               </button>
@@ -405,7 +405,7 @@ function List(props) {
 
 export default function ListsSpace(props) {
   return (
-    <div className="grid">
+    <div className="w-full p-10">
       {props.error && <p>Error: {JSON.stringify(props.error)}</p>}
       {props.loading && <p>...</p>}
       {props.value &&
