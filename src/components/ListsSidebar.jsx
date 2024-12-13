@@ -149,8 +149,8 @@ export default function ListsSidebar(props) {
                 setNewList(e.target.value);
               }}
             />
-            <button type="submit" className="btn btn-circle">
-              <FontAwesomeIcon icon={faPlusCircle} size="lg" />
+            <button type="submit" className="btn btn-circle btn-outline">
+              <FontAwesomeIcon icon={faPlusCircle} size="xl" />
             </button>
           </form>
 

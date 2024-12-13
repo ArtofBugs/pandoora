@@ -164,7 +164,7 @@ function StoreRow(props) {
       </td>
       <th>
         <button
-          className="btn btn-ghost btn-xs"
+          className="btn btn-ghost btn-xs text-red-700"
           onClick={() => deleteStore(props.id)}
         >
           delete

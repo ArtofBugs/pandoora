@@ -352,7 +352,7 @@ function List(props) {
               }}
             />
             <button type="submit" className="btn btn-circle btn-outline">
-              <FontAwesomeIcon icon={faPlusCircle} />
+              <FontAwesomeIcon icon={faPlusCircle} size="xl" />
             </button>
           </form>
         </div>
