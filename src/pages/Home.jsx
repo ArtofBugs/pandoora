@@ -1,26 +1,64 @@
+import { useState } from "react";
+
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCog, faEllipsis, faTasks } from "@fortawesome/free-solid-svg-icons";
+import {
+  faCog,
+  faEllipsis,
+  faTasks,
+  faLock,
+  faLockOpen,
+} from "@fortawesome/free-solid-svg-icons";
 import { NavLink } from "react-router-dom";
 import { faCalendar } from "@fortawesome/free-regular-svg-icons";
 
+function Lock(props) {
+  return (
+    <label className="swap swap-rotate">
+      <input
+        type="checkbox"
+        value={props.locked}
+        onChange={() => props.setLocked(!props.locked)}
+      />
+      <FontAwesomeIcon
+        icon={faLockOpen}
+        className="swap-off white"
+        style={{ color: "white" }}
+      />
+      <FontAwesomeIcon
+        icon={faLock}
+        className="swap-on"
+        style={{ color: "white" }}
+      />
+    </label>
+  );
+}
+
 function Menu() {
+  const [locked, setLocked] = useState(false);
   return (
     <ul className="menu menu-horizontal hover:bg-slate-700 rounded-md">
       <li>
-        <NavLink to="/tasks">
-          <FontAwesomeIcon icon={faTasks} style={{ color: "white" }} />
-        </NavLink>
+        <Lock locked={locked} setLocked={setLocked} />
       </li>
-      <li>
-        <NavLink to="/calendar">
-          <FontAwesomeIcon icon={faCalendar} style={{ color: "white" }} />
-        </NavLink>
-      </li>
-      <li>
-        <NavLink to="/settings">
-          <FontAwesomeIcon icon={faCog} style={{ color: "white" }} />
-        </NavLink>
-      </li>
+      {!locked && (
+        <>
+          <li>
+            <NavLink to="/tasks">
+              <FontAwesomeIcon icon={faTasks} style={{ color: "white" }} />
+            </NavLink>
+          </li>
+          <li>
+            <NavLink to="/calendar">
+              <FontAwesomeIcon icon={faCalendar} style={{ color: "white" }} />
+            </NavLink>
+          </li>
+          <li>
+            <NavLink to="/settings">
+              <FontAwesomeIcon icon={faCog} style={{ color: "white" }} />
+            </NavLink>
+          </li>
+        </>
+      )}
     </ul>
   );
 }
