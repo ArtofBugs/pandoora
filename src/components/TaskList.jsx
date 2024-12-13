@@ -288,7 +288,11 @@ async function deleteTask(docRef) {
 }
 
 async function updateTask(id, field, content, type) {
-  if ((type == "date" || type == "time") && content == "") {
+  console.log(content);
+  if (
+    ((type == "date" || type == "time") && content == "") ||
+    content == "None"
+  ) {
     console.log("Edited to empty date or time");
     await updateDoc(doc(getDb(), "tasks", id), {
       [field]: deleteField(),
@@ -296,13 +300,14 @@ async function updateTask(id, field, content, type) {
     return;
   }
   if (type == "date") {
-    content = new Date(content);
+    content = new Date(content + " 00:00:00");
   } else if (type == "time") {
-    // FIXME: Time parsing probably doesn't work
     content = new Date("1970-01-01 " + content);
   } else if (type == "number") {
     content = Number(content);
+  } else {
   }
+
   try {
     console.log(`Updating ${field} to ${content}`);
     await updateDoc(doc(getDb(), "tasks", id), {
