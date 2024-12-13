@@ -69,8 +69,8 @@ function StoreBankCard(props) {
 
 export default function StoreBank(props) {
   return (
-    <div className="border">
-      <h1 className="">Bank</h1>
+    <div className="border container w-full">
+      <h1 className="font-bold text-4xl">Bank</h1>
       <h2>Available to claim:</h2>
       {props.error && <p>Error: {JSON.stringify(props.error)}</p>}
       {props.loading && <p>Loading...</p>}

@@ -47,9 +47,10 @@ function EditableField(props) {
           onChange={(e) => {
             setContent(e.target.value);
           }}
+          className="input w-full m-0"
         />
       ) : (
-        <p className="text-left w-full">{props.content}</p>
+        <p className="text-left text-wrap w-full">{props.content}</p>
       )}
     </div>
   );
