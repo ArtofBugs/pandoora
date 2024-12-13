@@ -8,6 +8,8 @@ export function TaskPopup(props) {
   const [name, setName] = useState(
     props.data.name || "Untitled task " + props.id
   );
+  const [estTime, setEstTime] = useState(props.data.estTime || "");
+  const [actTime, setActTime] = useState(props.data.actTime || "");
   const [description, setDescription] = useState(props.data.description || "");
   // Text decoration goes to children too, according to
   // https://github.com/tailwindlabs/tailwindcss/discussions/3836,
@@ -34,6 +36,30 @@ export function TaskPopup(props) {
               onChange={(e) => setName(e.target.value)}
             />
           </label>
+          <label
+            htmlFor="edit-est-time"
+            className="input input-bordered flex items-center gap-2 w-full"
+          >
+            Estimated time
+            <input
+              id="edit-est-time"
+              type="text"
+              value={estTime}
+              onChange={(e) => setEstTime(e.target.value)}
+            />
+          </label>
+          <label
+            htmlFor="edit-act-time"
+            className="input input-bordered flex items-center gap-2 w-full"
+          >
+            Actual time taken
+            <input
+              id="edit-act-time"
+              type="text"
+              value={actTime}
+              onChange={(e) => setActTime(e.target.value)}
+            />
+          </label>
           <label className="form-control">
             <div className="label">
               <span className="label-text">Notes</span>
@@ -52,6 +78,8 @@ export function TaskPopup(props) {
             className="btn"
             onClick={() => {
               updateTask(props.id, "name", name, "text");
+              updateTask(props.id, "estTime", estTime, "text");
+              updateTask(props.id, "actTime", actTime, "text");
               updateTask(props.id, "description", description, "text");
               console.log("modal edit saved");
               props.setShowPopup(false);
