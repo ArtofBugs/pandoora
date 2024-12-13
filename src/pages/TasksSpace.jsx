@@ -10,6 +10,7 @@ import { useCollection } from "react-firebase-hooks/firestore";
 import getDb from "../firebase/initialize";
 
 export default function TasksSpace() {
+  // Only grab the whole collection once and handle hiding non-shown lists on the client side
   const [value, loading, error] = useCollection(collection(getDb(), "lists"));
   return (
     <>

@@ -56,16 +56,31 @@ function EditableField(props) {
   );
 }
 
+function ShowListButton(props) {
+  const [show, setShow] = useState(props.show);
+  return (
+    <label htmlFor={props.id} className={"swap btn-circle btn-ghost"}>
+      <input
+        type="checkbox"
+        id={props.id}
+        checked={show}
+        onChange={() => {
+          updateList(props.id, "show", !show, "boolean");
+          setShow(!show);
+        }}
+      />
+      <FontAwesomeIcon icon={faEye} className="swap-on" />
+      <FontAwesomeIcon icon={faEyeSlash} className="swap-off" />
+    </label>
+  );
+}
+
 function ListEntry(props) {
   // FontAwesome doesn't have an eye-closed icon :(
   // https://github.com/FortAwesome/Font-Awesome/issues/8283
   return (
     <div className="label cursor-pointer space-x-2 btn-ghost rounded-lg flex flex-row w-full">
-      <label htmlFor={props.id} className="swap btn-circle btn-ghost">
-        <input type="checkbox" id={props.id} />
-        <FontAwesomeIcon icon={faEye} className="swap-on" />
-        <FontAwesomeIcon icon={faEyeSlash} className="swap-off" />
-      </label>
+      <ShowListButton id={props.id} show={props.data.show} />
       <EditableField
         id={props.id}
         field="name"
@@ -89,6 +104,7 @@ async function addList(name) {
   try {
     const listRef = await addDoc(collection(getDb(), "lists"), {
       name: name,
+      show: true,
     });
     console.log(`Document written with ID '${listRef.id}' and name '${name}'`);
   } catch (e) {

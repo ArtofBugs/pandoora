@@ -325,6 +325,9 @@ async function updateTask(id, field, content, type) {
 // FIXME: Known issue https://github.com/react-grid-layout/react-draggable/issues/749
 function List(props) {
   const [newTask, setNewTask] = useState("");
+  if (!props.data.show) {
+    return;
+  }
   return (
     <Draggable>
       <div className="menu bg-base-200 rounded-box w-[50vw]">
