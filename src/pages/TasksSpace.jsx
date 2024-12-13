@@ -30,7 +30,7 @@ export default function TasksSpace() {
               className="drawer-toggle"
               defaultChecked="true"
             />
-            <div className="drawer-content">
+            <div className="drawer-content p-10">
               <ListsSpace value={value} loading={loading} error={error} />
             </div>
             <div className="drawer-side static">

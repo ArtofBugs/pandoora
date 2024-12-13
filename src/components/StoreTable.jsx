@@ -80,7 +80,8 @@ function EditableCell(props) {
     >
       {editing ? (
         <input
-          className="input input-bordered"
+          autoFocus
+          className="input input-bordered m-0"
           id={props.id}
           min={props.min}
           step={props.step}
@@ -92,7 +93,7 @@ function EditableCell(props) {
           }}
         />
       ) : (
-        <p>{props.content}</p>
+        <p className="text-left text-wrap">{props.content}</p>
       )}
     </td>
   );
@@ -101,7 +102,7 @@ function EditableCell(props) {
 function StoreRow(props) {
   const [toClaim, setToClaim] = useState(0);
   return (
-    <tr>
+    <tr className="table-row hover">
       <EditableCell
         id={props.id}
         field="name"
@@ -141,7 +142,7 @@ function StoreRow(props) {
           >
             Claim
             <input
-              className="input input-bordered"
+              className="input input-bordered w-min"
               type="number"
               id={props.id}
               step={1}
@@ -183,14 +184,16 @@ export default function StoreTable(props) {
   //   const [newDescription, setNewDescription] = useState("");
   return (
     // <div className="overflow-x-auto">
-    <div>
-      <h1>Store</h1>
-      <table className="table">
+    <div className="w-screen p-2">
+      <h1 className="font-bold text-xl w-full">Store</h1>
+      <table className="table w-full">
         <thead>
           <tr>
-            <th>Name</th>
-            <th>Price</th>
-            <th>Quantity remaining</th>
+            <th className="w-60">Name</th>
+            <th className="w-10">Price</th>
+            <th className="w-10">Quantity remaining</th>
+            <th className="w-10" />
+            <th className="w-10" />
           </tr>
         </thead>
         <tbody>
@@ -237,7 +240,7 @@ export default function StoreTable(props) {
                 }}
               ></input>
             </td>
-            <td colSpan={2}>
+            <td colSpan={3}>
               <form
                 id="storeAddForm"
                 onSubmit={(e) => {

@@ -71,16 +71,18 @@ function StoreBankCard(props) {
 
 export default function StoreBank(props) {
   return (
-    <div className="rounded-lg bg-neutral-content m-2 p-4 container w-full">
-      <h1 className="font-bold text-xl m-2 w-full">Bank</h1>
-      <h2 className="w-full">Available to claim:</h2>
-      <div className="w-full inline-flex flex-wrap">
-        {props.error && <p>Error: {JSON.stringify(props.error)}</p>}
-        {props.loading && <p>Loading...</p>}
-        {props.value &&
-          props.value.docs.map((doc) => (
-            <StoreBankCard key={doc.id} id={doc.id} data={doc.data()} />
-          ))}
+    <div className="p-2 w-screen">
+      <div className="rounded-lg bg-neutral-content p-4 w-full m-0">
+        <h1 className="font-bold text-xl m-2 w-full">Bank</h1>
+        <h2 className="w-full">Available to claim:</h2>
+        <div className="w-full inline-flex flex-wrap">
+          {props.error && <p>Error: {JSON.stringify(props.error)}</p>}
+          {props.loading && <p>Loading...</p>}
+          {props.value &&
+            props.value.docs.map((doc) => (
+              <StoreBankCard key={doc.id} id={doc.id} data={doc.data()} />
+            ))}
+        </div>
       </div>
     </div>
   );

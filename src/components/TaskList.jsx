@@ -102,7 +102,7 @@ function EditableField(props) {
           e.stopPropagation();
         }
       }}
-      className="w-fit"
+      className="w-full max-w-full"
     >
       {editing ? (
         <input
@@ -113,7 +113,7 @@ function EditableField(props) {
           onChange={(e) => {
             setContent(e.target.value);
           }}
-          className="input w-full"
+          className="input input-sm box-border w-full min-w-0"
         />
       ) : (
         <div className="text-left text-wrap w-full">{props.content}</div>
@@ -327,7 +327,7 @@ function List(props) {
   const [newTask, setNewTask] = useState("");
   return (
     <Draggable>
-      <div className="menu bg-base-200 rounded-box w-fit">
+      <div className="menu bg-base-200 rounded-box w-[50vw]">
         <h1>{props.data.name || `Untitled list ${props.id}`}</h1>
         <div className="menu">
           <ul className="menu">
