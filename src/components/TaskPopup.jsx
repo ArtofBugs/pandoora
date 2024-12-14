@@ -3,7 +3,59 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEllipsisV } from "@fortawesome/free-solid-svg-icons";
 import { updateTask } from "./update-utils";
 
+import { collection } from "firebase/firestore";
+import { useCollection } from "react-firebase-hooks/firestore";
+
+import getDb from "../firebase/initialize";
+
+// TODO: Allow assigning a quantity of rewards for a task
+// TODO: Allow claiming rewards from the task popup
+function RewardsMenu(props) {
+  const [value, loading, error] = useCollection(collection(getDb(), "store"));
+  return (
+    <label className="form-control w-full">
+      <div className="label">
+        <span className="label-text">Assigned reward</span>
+      </div>
+      {error && <option disabled>Error: {JSON.stringify(error)}</option>}
+      {loading && <option disabled>...</option>}
+      {value && (
+        <select
+          className="select"
+          defaultValue={
+            value.docs.find((doc) => doc.id == props.reward)?.data().name ||
+            "None"
+          }
+        >
+          {
+            <option
+              onClick={() => {
+                props.setReward("");
+                setSelected("None");
+              }}
+            >
+              None
+            </option>
+          }
+          {value.docs.map((doc) => (
+            <option
+              key={`rewards_menu_${doc.id}`}
+              className="btn"
+              onClick={() => {
+                props.setReward(doc.id);
+              }}
+            >
+              {doc.data().name || `Untitled reward ${doc.id}`}
+            </option>
+          ))}
+        </select>
+      )}
+    </label>
+  );
+}
+
 // TODO: Should id props be renamed to something else?
+// TODO: Investigate using formData instead of individual states
 export function TaskPopup(props) {
   const [name, setName] = useState(
     props.data.name || "Untitled task " + props.id
@@ -11,6 +63,7 @@ export function TaskPopup(props) {
   const [estTime, setEstTime] = useState(props.data.estTime || "");
   const [actTime, setActTime] = useState(props.data.actTime || "");
   const [description, setDescription] = useState(props.data.description || "");
+  const [reward, setReward] = useState(props.data.reward || "");
   // Text decoration goes to children too, according to
   // https://github.com/tailwindlabs/tailwindcss/discussions/3836,
   // so reset it
@@ -72,6 +125,7 @@ export function TaskPopup(props) {
               onChange={(e) => setDescription(e.target.value)}
             ></textarea>
           </label>
+          <RewardsMenu id={props.id} reward={reward} setReward={setReward} />
         </div>
         <div className="card-actions">
           <button
@@ -81,6 +135,7 @@ export function TaskPopup(props) {
               updateTask(props.id, "estTime", estTime, "text");
               updateTask(props.id, "actTime", actTime, "text");
               updateTask(props.id, "description", description, "text");
+              updateTask(props.id, "reward", reward, "text");
               console.log("modal edit saved");
               props.setShowPopup(false);
             }}
