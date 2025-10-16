@@ -136,7 +136,7 @@ export default function ListsSidebar(props) {
   return (
     <aside className="bg-base-200 p-2 space-y-5 flex flex-col h-full">
       <div className="h-10" />
-      {props.error && <p>Error: {JSON.stringify(error)}</p>}
+      {props.error && <p>Error: {JSON.stringify(props.error)}</p>}
       {props.loading && <p>Loading lists...</p>}
       {props.value && (
         <>
