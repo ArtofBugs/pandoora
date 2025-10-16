@@ -1,0 +1,11 @@
+{
+  "overrides": [
+    {
+      "files": ["*.js", "*.html", "*.css", "*.json", "*.yml"],
+      "options": {
+        "singleQuote": true,
+        "semi": false
+      }
+    }
+  ]
+}
