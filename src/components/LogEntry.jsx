@@ -74,7 +74,7 @@ export function NewLogEntry({ data, setEditing }) {
   return (
     <div className="collapse collapse-arrow collapse-open bg-base-100 border-base-300 border">
       <input type="checkbox" />
-      <div className="collapse-title font-semibold pointer-events-none z-10">
+      <div className="collapse-title font-semibold">
         <TitleInput content={content} setContent={setContent} />
       </div>
       <div className="collapse-content text-sm flex flex-col gap-4 h-max">
@@ -108,7 +108,6 @@ function TitleInput({ content, setContent }) {
   return (
     <input
       className="input input-bordered w-full"
-      style={{ "pointer-events": "all" }}
       // onClick={(e) => {
       //   // FIXME: Can't enter the box
       //   e.stopPropagation();
