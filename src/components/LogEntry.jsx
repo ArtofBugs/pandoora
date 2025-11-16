@@ -108,11 +108,6 @@ function TitleInput({ content, setContent }) {
   return (
     <input
       className="input input-bordered w-full"
-      // onClick={(e) => {
-      //   // FIXME: Can't enter the box
-      //   e.stopPropagation();
-      //   e.nativeEvent.stopImmediatePropagation();
-      // }}
       placeholder="Title"
       value={(content && content.title) || ""}
       onChange={(e) => setContent({ ...content, title: e.target.value })}
@@ -133,6 +128,20 @@ function DescriptionInput({ content, setContent }) {
       onChange={(e) => setContent({ ...content, description: e.target.value })}
     />
   );
+}
+
+function BudgetContainer({ content, setContent }) {
+  let budget = content.budget;
+  const [sleep, setSleep] = useState(content.budget.sleep);
+  return (
+    <form>
+      <HoursInput hour={budget.sleep} setContent={setSleep} />
+    </form>
+  );
+}
+
+function HoursInput({ hour, setHour }) {
+  return <input type="number" value={hour} onChange={setHour(hour)}></input>;
 }
 
 function SubmissionContainer({ children }) {
