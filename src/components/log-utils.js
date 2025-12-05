@@ -17,3 +17,9 @@ export async function updateLogEntry(id, content) {
     console.error('Error adding document:', e)
   }
 }
+
+export const TOTAL_HOURS = 24
+export const BUDGET_FIELDS = {
+  Sleep: 0,
+  Class: 0,
+}

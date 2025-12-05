@@ -3,7 +3,12 @@ import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPencil, faTrashCan } from "@fortawesome/free-solid-svg-icons";
 
-import { createLogEntry, updateLogEntry } from "./log-utils";
+import {
+  createLogEntry,
+  updateLogEntry,
+  TOTAL_HOURS,
+  BUDGET_FIELDS,
+} from "./log-utils";
 
 export function LogEntry({ data, initial, id }) {
   const [editing, setEditing] = useState(initial ?? false); // set false if undefined
@@ -23,7 +28,9 @@ export function LogEntry({ data, initial, id }) {
   return (
     <div className="collapse collapse-arrow bg-base-100 border-base-300 border">
       <input type="checkbox" />
+      {/* Header */}
       <div className="collapse-title font-semibold">
+        {/* Title */}
         {editing ? (
           <TitleInput content={content} setContent={setContent} />
         ) : (
@@ -37,12 +44,27 @@ export function LogEntry({ data, initial, id }) {
           </div>
         )}
       </div>
-      <form className="collapse-content text-sm flex flex-col">
-        {editing ? (
-          <DescriptionInput content={content} setContent={setContent} />
-        ) : (
-          <DescriptionDisplay description={data.description} />
-        )}
+      {/* Content */}
+      <form className="collapse-content text-sm flex flex-col gap-10">
+        <div className="flex flex-row gap-10">
+          {/* Budget */}
+          <fieldset className="fieldset flex-1">
+            <BudgetArea
+              content={content}
+              setContent={setContent}
+              editing={editing}
+            />
+          </fieldset>
+          {/* Description */}
+          <fieldset className="fieldset flex-1">
+            {editing ? (
+              <DescriptionInput content={content} setContent={setContent} />
+            ) : (
+              <DescriptionDisplay description={data.description} />
+            )}
+          </fieldset>
+        </div>
+        {/* Buttons */}
         <div>
           {editing ? (
             <SubmissionContainer>
@@ -69,7 +91,7 @@ export function LogEntry({ data, initial, id }) {
 }
 
 export function NewLogEntry({ data, setEditing }) {
-  const [content, setContent] = useState(data ?? {});
+  const [content, setContent] = useState({ budget: BUDGET_FIELDS });
 
   return (
     <div className="collapse collapse-arrow collapse-open bg-base-100 border-base-300 border">
@@ -78,23 +100,39 @@ export function NewLogEntry({ data, setEditing }) {
         <TitleInput content={content} setContent={setContent} />
       </div>
       <div className="collapse-content text-sm flex flex-col gap-4 h-max">
-        <DescriptionInput content={content} setContent={setContent} />
-        <SubmissionContainer>
-          <SaveButton
-            onSave={(e) => {
-              e.preventDefault();
-              createLogEntry(content);
-              setEditing(false);
-            }}
-          />
-          <CancelButton
-            onCancel={(e) => {
-              e.preventDefault();
-              setContent({});
-              setEditing(false);
-            }}
-          />
-        </SubmissionContainer>
+        <div className="flex flex-row gap-10">
+          {/* Budget */}
+          <fieldset className="fieldset flex-1">
+            <BudgetArea
+              content={content}
+              setContent={setContent}
+              editing={true}
+            />
+          </fieldset>
+          {/* Description */}
+          <fieldset className="fieldset flex-1">
+            <DescriptionInput content={content} setContent={setContent} />
+          </fieldset>
+        </div>
+        {/* Buttons */}
+        <div>
+          <SubmissionContainer>
+            <SaveButton
+              onSave={(e) => {
+                e.preventDefault();
+                createLogEntry(content);
+                setEditing(false);
+              }}
+            />
+            <CancelButton
+              onCancel={(e) => {
+                e.preventDefault();
+                setContent({});
+                setEditing(false);
+              }}
+            />
+          </SubmissionContainer>
+        </div>
       </div>
     </div>
   );
@@ -130,18 +168,136 @@ function DescriptionInput({ content, setContent }) {
   );
 }
 
-function BudgetContainer({ content, setContent }) {
-  let budget = content.budget;
-  const [sleep, setSleep] = useState(content.budget.sleep);
+function BudgetArea({ editing, content, setContent }) {
   return (
-    <form>
-      <HoursInput hour={budget.sleep} setContent={setSleep} />
-    </form>
+    <ul className="list">
+      <li className="tracking-wide font-extrabold">Time Budget</li>
+      {editing ? (
+        <BudgetInput content={content} setContent={setContent} />
+      ) : (
+        <BudgetDisplay content={content} />
+      )}
+    </ul>
   );
 }
 
-function HoursInput({ hour, setHour }) {
-  return <input type="number" value={hour} onChange={setHour(hour)}></input>;
+function BudgetDisplay({ content }) {
+  if (!content.budget) {
+    return <div />;
+  }
+  let total = TOTAL_HOURS;
+  for (const hour of Object.values(content.budget)) {
+    total -= Number(hour);
+    console.log("subtracted", hour);
+  }
+  return (
+    <>
+      <li className="list-row flex font-bold gap-1">
+        <HoursLabel label="Total hours in week" />
+        <HoursDisplay hour={TOTAL_HOURS} />
+      </li>
+      <li className="flex flex-row items-end gap-1">
+        <div className="font-extrabold h-min">-</div>
+        <ul className="flex-1">
+          {Object.entries(content.budget).map(([engagement, hour], i) => (
+            <li className="list-row flex gap-1" key={i}>
+              <HoursLabel label={engagement} />
+              <HoursDisplay hour={hour} />
+            </li>
+          ))}
+        </ul>
+      </li>
+      <li className="list-row">
+        <hr></hr>
+      </li>
+      <li className="list-row font-extrabold flex gap-1">
+        <HoursLabel label="Remaining" />
+        <HoursDisplay hour={total} />
+      </li>
+    </>
+  );
+}
+
+function BudgetInput({ content, setContent }) {
+  if (!content.budget) {
+    return <div />;
+  }
+  let total = TOTAL_HOURS;
+  for (const hour of Object.values(content.budget)) {
+    total -= Number(hour);
+    console.log("subtracted", hour);
+  }
+  return (
+    <>
+      <li className="list-row flex font-bold gap-1">
+        <HoursLabel label="Total hours in week" />
+        <HoursDisplay hour={TOTAL_HOURS} />
+      </li>
+      <li className="flex flex-row items-end gap-1">
+        <div className="font-extrabold h-min">-</div>
+        <ul className="flex-1">
+          {Object.entries(content.budget).map(([engagement, hour], i) => (
+            <li className="list-row flex gap-1 items-end" key={i}>
+              <HoursLabel label={engagement} />
+              <HoursInput
+                hour={hour}
+                setHour={(e) =>
+                  setContent({
+                    ...content,
+                    budget: { ...content.budget, [engagement]: e.target.value },
+                  })
+                }
+              />
+            </li>
+          ))}
+        </ul>
+      </li>
+      <li className="list-row">
+        <hr></hr>
+      </li>
+      <li className="list-row font-extrabold flex gap-1">
+        <HoursLabel label="Remaining" />
+        <HoursDisplay hour={total} />
+      </li>
+      {/* {Object.entries(content.budget).map(([engagement, hour], i) => (
+        <li className="list-row flex justify-items-center" key={i}>
+          <HoursLabel label={engagement} />
+          <HoursInput
+            className="w-full"
+            hour={hour}
+            setHour={(e) =>
+              setContent({
+                ...content,
+                budget: { ...content.budget, [engagement]: e.target.value },
+              })
+            }
+          />
+        </li>
+      ))} */}
+    </>
+  );
+}
+
+function HoursLabel({ label }) {
+  return <div className="flex-1 h-min">{label || ""}</div>;
+}
+
+function HoursDisplay({ hour }) {
+  return <p className="">{hour || ""}</p>;
+}
+
+function HoursInput({ hour, setHour, hint }) {
+  return (
+    <div>
+      <input
+        type="number"
+        value={hour}
+        onChange={setHour}
+        className="input validator w-full"
+      ></input>
+      {/* <div className="validator-hint">{hint || "Invalid value."}</div> */}
+    </div>
+  );
 }
 
 function SubmissionContainer({ children }) {
