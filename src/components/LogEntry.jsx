@@ -8,6 +8,7 @@ import {
   updateLogEntry,
   TOTAL_HOURS,
   BUDGET_FIELDS,
+  NOTES_PLACEHOLDER,
 } from "./log-utils";
 
 export function LogEntry({ data, initial, id }) {
@@ -18,12 +19,6 @@ export function LogEntry({ data, initial, id }) {
   console.log(content);
   console.log("data");
   console.log(data);
-
-  // Don't show anything if empty
-  // if (!editing && !content.title && !content.description) {
-  //   console.log("Not showing");
-  //   return;
-  // }
 
   return (
     <div className="collapse collapse-arrow bg-base-100 border-base-300 border">
@@ -55,12 +50,12 @@ export function LogEntry({ data, initial, id }) {
               editing={editing}
             />
           </fieldset>
-          {/* Description */}
+          {/* Notes */}
           <fieldset className="fieldset flex-1">
             {editing ? (
-              <DescriptionInput content={content} setContent={setContent} />
+              <NotesInput content={content} setContent={setContent} />
             ) : (
-              <DescriptionDisplay description={data.description} />
+              <NotesDisplay notes={data.notes} />
             )}
           </fieldset>
         </div>
@@ -109,9 +104,9 @@ export function NewLogEntry({ data, setEditing }) {
               editing={true}
             />
           </fieldset>
-          {/* Description */}
+          {/* Notes */}
           <fieldset className="fieldset flex-1">
-            <DescriptionInput content={content} setContent={setContent} />
+            <NotesInput content={content} setContent={setContent} />
           </fieldset>
         </div>
         {/* Buttons */}
@@ -153,17 +148,17 @@ function TitleInput({ content, setContent }) {
   );
 }
 
-function DescriptionDisplay({ description }) {
-  return <p className="w-full">{description || ""}</p>;
+function NotesDisplay({ notes }) {
+  return <p className="w-full">{notes || ""}</p>;
 }
 
-function DescriptionInput({ content, setContent }) {
+function NotesInput({ content, setContent }) {
   return (
     <textarea
-      className="textarea textarea-neutral w-full"
-      placeholder="Description"
-      value={(content && content.description) || ""}
-      onChange={(e) => setContent({ ...content, description: e.target.value })}
+      className="textarea textarea-neutral w-full h-full"
+      placeholder={NOTES_PLACEHOLDER}
+      value={(content && content.notes) || ""}
+      onChange={(e) => setContent({ ...content, notes: e.target.value })}
     />
   );
 }

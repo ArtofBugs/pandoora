@@ -23,3 +23,6 @@ export const BUDGET_FIELDS = {
   Sleep: 0,
   Class: 0,
 }
+
+export const NOTES_PLACEHOLDER =
+  "**Notes**\n- What are you looking forward to?\n- What distractions can be minimized?\n- What's your biggest roadblock?"
