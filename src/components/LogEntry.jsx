@@ -14,6 +14,7 @@ import {
 export function LogEntry({ data, initial, id }) {
   const [editing, setEditing] = useState(initial ?? false); // set false if undefined
   const [content, setContent] = useState(data ?? {});
+  const [collapseOpen, setCollapseOpen] = useState(false);
   console.log(editing);
   console.log("content");
   console.log(content);
@@ -21,10 +22,17 @@ export function LogEntry({ data, initial, id }) {
   console.log(data);
 
   return (
-    <div className="collapse collapse-arrow bg-base-100 border-base-300 border">
-      <input type="checkbox" />
+    <div
+      className={
+        "collapse collapse-arrow bg-base-100 border-base-300 border" +
+        (collapseOpen ? " collapse-open" : "")
+      }
+    >
       {/* Header */}
-      <div className="collapse-title font-semibold">
+      <div
+        className="collapse-title font-semibold"
+        onClick={() => setCollapseOpen(!collapseOpen)}
+      >
         {/* Title */}
         {editing ? (
           <TitleInput content={content} setContent={setContent} />
@@ -85,13 +93,23 @@ export function LogEntry({ data, initial, id }) {
   );
 }
 
-export function NewLogEntry({ data, setEditing }) {
+export function NewLogEntry({ setEditing }) {
   const [content, setContent] = useState({ budget: BUDGET_FIELDS });
+  const [collapseOpen, setCollapseOpen] = useState(true);
 
   return (
-    <div className="collapse collapse-arrow collapse-open bg-base-100 border-base-300 border">
-      <input type="checkbox" />
-      <div className="collapse-title font-semibold">
+    <div
+      className={
+        "collapse collapse-arrow bg-base-100 border-base-300 border" +
+        (collapseOpen ? " collapse-open" : "")
+      }
+    >
+      {/* Header */}
+      <div
+        className="collapse-title font-semibold"
+        onClick={() => setCollapseOpen(!collapseOpen)}
+      >
+        {/* Title */}
         <TitleInput content={content} setContent={setContent} />
       </div>
       <div className="collapse-content text-sm flex flex-col gap-4 h-max">
@@ -143,6 +161,7 @@ function TitleInput({ content, setContent }) {
       className="input input-bordered w-full"
       placeholder="Title"
       value={(content && content.title) || ""}
+      onClick={(e) => e.stopPropagation()}
       onChange={(e) => setContent({ ...content, title: e.target.value })}
     />
   );
@@ -321,7 +340,10 @@ function EditButton({ setEditing }) {
       <FontAwesomeIcon
         icon={faPencil}
         className="text-gray-500"
-        onClick={() => setEditing(true)}
+        onClick={(e) => {
+          e.stopPropagation();
+          setEditing(true);
+        }}
       />
     </button>
   );
