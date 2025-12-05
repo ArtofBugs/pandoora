@@ -27,7 +27,7 @@ export default function LogSpace() {
               key={doc.id}
               id={doc.id}
               data={doc.data() || {}}
-              initial={true}
+              initial={false}
             />
           );
         })}

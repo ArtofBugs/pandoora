@@ -297,7 +297,7 @@ function HoursLabel({ label }) {
 }
 
 function HoursDisplay({ hour }) {
-  return <p className="">{hour || ""}</p>;
+  return <p className="">{hour}</p>;
 }
 
 function HoursInput({ hour, setHour, hint }) {
