@@ -9,6 +9,7 @@ import {
   TOTAL_HOURS,
   BUDGET_FIELDS,
   NOTES_PLACEHOLDER,
+  deleteLogEntry,
 } from "./log-utils";
 
 export function LogEntry({ data, initial, id }) {
@@ -82,7 +83,11 @@ export function LogEntry({ data, initial, id }) {
                   setEditing(false);
                 }}
               />
-              <DeleteButton />
+              <DeleteButton
+                onDelete={() => {
+                  deleteLogEntry(id);
+                }}
+              />
             </SubmissionContainer>
           ) : (
             <div />
@@ -349,9 +354,14 @@ function EditButton({ setEditing }) {
   );
 }
 
-function DeleteButton() {
+function DeleteButton({ onDelete }) {
   return (
-    <button>
+    <button
+      onClick={(e) => {
+        e.preventDefault();
+        onDelete();
+      }}
+    >
       <FontAwesomeIcon icon={faTrashCan} className="text-gray-500" />
     </button>
   );

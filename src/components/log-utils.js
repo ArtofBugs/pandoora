@@ -1,4 +1,10 @@
-import { doc, collection, updateDoc, addDoc } from 'firebase/firestore'
+import {
+  doc,
+  collection,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+} from 'firebase/firestore'
 
 import getDb from '../firebase/initialize'
 
@@ -15,6 +21,14 @@ export async function updateLogEntry(id, content) {
     await updateDoc(doc(getDb(), 'log', id), content)
   } catch (e) {
     console.error('Error adding document:', e)
+  }
+}
+
+export async function deleteLogEntry(id) {
+  try {
+    await deleteDoc(doc(getDb(), 'log', id))
+  } catch (e) {
+    console.error('Error deleting document:', e)
   }
 }
 
