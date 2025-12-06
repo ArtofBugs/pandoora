@@ -373,7 +373,7 @@ function DeleteButton({ onDelete }) {
     >
       <FontAwesomeIcon
         icon={faTrashCan}
-        className="text-gray-300 active:text-red-500 hover:text-red-500"
+        className="text-gray-300 active:text-red-500 hover:text-red-500 p-1"
       />
     </button>
   );
