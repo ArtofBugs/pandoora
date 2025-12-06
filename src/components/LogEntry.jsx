@@ -173,13 +173,13 @@ function TitleInput({ content, setContent }) {
 }
 
 function NotesDisplay({ notes }) {
-  return <p className="w-full">{notes || ""}</p>;
+  return <p className="w-full h-full p-2 border">{notes || ""}</p>;
 }
 
 function NotesInput({ content, setContent }) {
   return (
     <textarea
-      className="textarea textarea-neutral w-full h-full"
+      className="border textarea textarea-neutral w-full h-full border-gray-200"
       placeholder={NOTES_PLACEHOLDER}
       value={(content && content.notes) || ""}
       onChange={(e) => setContent({ ...content, notes: e.target.value })}
