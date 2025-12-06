@@ -178,7 +178,11 @@ function TitleInput({ content, setContent }) {
 }
 
 function NotesDisplay({ notes }) {
-  return <p className="w-full h-full p-2 border">{notes || ""}</p>;
+  return (
+    <div className="w-full h-full p-2 border whitespace-pre-wrap">
+      {notes || ""}
+    </div>
+  );
 }
 
 function NotesInput({ content, setContent }) {
@@ -349,7 +353,7 @@ function EditButton({ onEdit }) {
     <button>
       <FontAwesomeIcon
         icon={faPencil}
-        className="text-gray-500"
+        className="text-gray-300 p-2 active:text-gray-600 focus-within:text-gray-600 hover:text-gray-600 rounded-full"
         onClick={(e) => {
           e.stopPropagation();
           onEdit();
@@ -367,7 +371,10 @@ function DeleteButton({ onDelete }) {
         onDelete();
       }}
     >
-      <FontAwesomeIcon icon={faTrashCan} className="text-gray-500" />
+      <FontAwesomeIcon
+        icon={faTrashCan}
+        className="text-gray-300 active:text-red-500 hover:text-red-500"
+      />
     </button>
   );
 }
