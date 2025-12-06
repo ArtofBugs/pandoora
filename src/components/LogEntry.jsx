@@ -43,7 +43,12 @@ export function LogEntry({ data, initial, id }) {
               <TitleDisplay title={data.title} />
             </div>
             <div className="flex-none">
-              <EditButton setEditing={setEditing} />
+              <EditButton
+                onEdit={() => {
+                  setCollapseOpen(true);
+                  setEditing(true);
+                }}
+              />
             </div>
           </div>
         )}
@@ -339,7 +344,7 @@ function CancelButton({ onCancel }) {
   );
 }
 
-function EditButton({ setEditing }) {
+function EditButton({ onEdit }) {
   return (
     <button>
       <FontAwesomeIcon
@@ -347,7 +352,7 @@ function EditButton({ setEditing }) {
         className="text-gray-500"
         onClick={(e) => {
           e.stopPropagation();
-          setEditing(true);
+          onEdit();
         }}
       />
     </button>
