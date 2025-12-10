@@ -12,7 +12,7 @@ export default function LogSpace() {
   const [editing, setEditing] = useState(false);
 
   return (
-    <div className="flex flex-grow gap-4 flex-col pl-10 pr-10">
+    <div className="flex grow gap-4 flex-col pl-10 pr-10">
       {editing ? (
         <NewLogEntry data={{}} setEditing={setEditing} />
       ) : (

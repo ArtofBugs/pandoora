@@ -213,10 +213,10 @@ export default function Task(props) {
             <div
               className={
                 (data.completed ? "line-through " : "") +
-                "flex flex-row flex-grow justify-between gap-x-5"
+                "flex flex-row grow justify-between gap-x-5"
               }
             >
-              <div className="w-full flex-grow">
+              <div className="w-full grow">
                 <EditableField
                   id={value.id}
                   field="name"

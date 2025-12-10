@@ -13,7 +13,7 @@ export default function TasksSpace() {
   // Only grab the whole collection once and handle hiding non-shown lists on the client side
   const [value, loading, error] = useCollection(collection(getDb(), "lists"));
   return (
-    <div className="flex-grow h-20">
+    <div className="grow h-20">
       <div className="bg-slate-100 w-screen">
         <label htmlFor="lists-sidebar" className="drawer-button absolute z-10">
           <FontAwesomeIcon icon={faBars} />
