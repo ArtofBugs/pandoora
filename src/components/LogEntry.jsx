@@ -65,7 +65,7 @@ export function LogEntry({ data, initial, id }) {
             />
           </fieldset>
           {/* Notes */}
-          <fieldset className="fieldset flex-1">
+          <fieldset className="fieldset flex-1 flex">
             {editing ? (
               <NotesInput content={content} setContent={setContent} />
             ) : (
@@ -133,7 +133,7 @@ export function NewLogEntry({ setEditing }) {
             />
           </fieldset>
           {/* Notes */}
-          <fieldset className="fieldset flex-1">
+          <fieldset className="fieldset flex-1 flex">
             <NotesInput content={content} setContent={setContent} />
           </fieldset>
         </div>
