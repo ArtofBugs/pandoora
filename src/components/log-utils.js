@@ -35,7 +35,16 @@ export async function deleteLogEntry(id) {
 export const TOTAL_HOURS = 24
 export const BUDGET_FIELDS = {
   Sleep: 0,
-  Class: 0,
+  Meals: 0,
+  'Class / Work': 0,
+  Extracurriculars: 0,
+  Studying: 0,
+  Chores: 0,
+  'Self-Care & Exercise': 0,
+  'Outings & Social Events': 0,
+  'Social Media & Entertainment': 0,
+  'Time for Friends & Loved Ones': 0,
+  'Miscellaneous / Other': 0,
 }
 
 export const NOTES_PLACEHOLDER =
