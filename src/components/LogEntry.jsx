@@ -1,16 +1,15 @@
 import { useState } from "react";
 
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPencil, faTrashCan } from "@fortawesome/free-solid-svg-icons";
-
 import {
   createLogEntry,
   updateLogEntry,
+  deleteLogEntry,
   TOTAL_HOURS,
   BUDGET_FIELDS,
   NOTES_PLACEHOLDER,
-  deleteLogEntry,
 } from "./log-utils";
+
+import { SaveButton, CancelButton, EditButton, DeleteButton } from "./Common";
 
 export function LogEntry({ data, initial, id }) {
   const [editing, setEditing] = useState(initial ?? false); // set false if undefined
@@ -330,51 +329,4 @@ function HoursInput({ hour, setHour, hint }) {
 
 function SubmissionContainer({ children }) {
   return <div className="flex justify-end gap-4 h-max">{children}</div>;
-}
-
-function SaveButton({ onSave }) {
-  return (
-    <button className="btn" onClick={onSave}>
-      Save
-    </button>
-  );
-}
-
-function CancelButton({ onCancel }) {
-  return (
-    <button className="btn" onClick={onCancel}>
-      Cancel
-    </button>
-  );
-}
-
-function EditButton({ onEdit }) {
-  return (
-    <button>
-      <FontAwesomeIcon
-        icon={faPencil}
-        className="text-gray-300 p-2 active:text-gray-600 focus-within:text-gray-600 hover:text-gray-600 rounded-full"
-        onClick={(e) => {
-          e.stopPropagation();
-          onEdit();
-        }}
-      />
-    </button>
-  );
-}
-
-function DeleteButton({ onDelete }) {
-  return (
-    <button
-      onClick={(e) => {
-        e.preventDefault();
-        onDelete();
-      }}
-    >
-      <FontAwesomeIcon
-        icon={faTrashCan}
-        className="text-gray-300 active:text-red-500 hover:text-red-500 p-1"
-      />
-    </button>
-  );
 }
