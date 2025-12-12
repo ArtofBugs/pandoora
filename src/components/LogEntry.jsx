@@ -220,7 +220,7 @@ function BudgetDisplay({ content }) {
   return (
     <>
       <li className="list-row flex font-bold gap-1">
-        <HoursLabel label="Total hours in week" />
+        <HoursLabel label="Total hours in day" />
         <HoursDisplay hour={TOTAL_HOURS} />
       </li>
       <li className="flex flex-row items-end gap-1">
@@ -257,7 +257,7 @@ function BudgetInput({ content, setContent }) {
   return (
     <>
       <li className="list-row flex font-bold gap-1">
-        <HoursLabel label="Total hours in week" />
+        <HoursLabel label="Total hours in day" />
         <HoursDisplay hour={TOTAL_HOURS} />
       </li>
       <li className="flex flex-row items-end gap-1">
