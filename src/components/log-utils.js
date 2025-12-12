@@ -39,4 +39,4 @@ export const BUDGET_FIELDS = {
 }
 
 export const NOTES_PLACEHOLDER =
-  "**Notes**\n- What are you looking forward to?\n- What distractions can be minimized?\n- What's your biggest roadblock?"
+  '**Notes**\n- What are you looking forward to?\n- What distractions can be avoided?\n- Are you facing any roadblocks?'
