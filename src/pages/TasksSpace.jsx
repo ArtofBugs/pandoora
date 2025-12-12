@@ -1,8 +1,4 @@
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBars } from "@fortawesome/free-solid-svg-icons";
-
-import ListsSidebar from "../components/ListsSidebar";
-import ListsSpace from "../components/TaskList";
+// import { useState } from "react";
 
 import { collection } from "firebase/firestore";
 import { useCollection } from "react-firebase-hooks/firestore";
@@ -12,27 +8,28 @@ import getDb from "../firebase/initialize";
 export default function TasksSpace() {
   // Only grab the whole collection once and handle hiding non-shown lists on the client side
   const [value, loading, error] = useCollection(collection(getDb(), "lists"));
+  // const [editing, setEditing] = useState(false);
+
   return (
-    <div className="grow h-20">
-      <div className="bg-slate-100 w-screen">
-        <label htmlFor="lists-sidebar" className="drawer-button absolute z-10">
-          <FontAwesomeIcon icon={faBars} />
-        </label>
-      </div>
-      <div className="drawer h-full">
-        <input
-          id="lists-sidebar"
-          type="checkbox"
-          className="drawer-toggle"
-          defaultChecked="true"
-        />
-        <div className="drawer-content h-full">
-          <ListsSpace value={value} loading={loading} error={error} />
-        </div>
-        <div className="drawer-side absolute h-full w-fit">
-          <ListsSidebar value={value} loading={loading} error={error} />
-        </div>
-      </div>
+    <div className="flex grow gap-4 flex-col pl-10 pr-10">
+      {/* {editing ? (
+        <NewList data={{}} setEditing={setEditing} />
+      ) : (
+        <AddListButton onClick={() => setEditing(true)} />
+      )} */}
+      {error && <p>Error: {JSON.stringify(error)}</p>}
+      {loading && <p>...</p>}
+      {value &&
+        value.docs.map((doc) => {
+          return (
+            <TaskList
+              key={doc.id}
+              id={doc.id}
+              data={doc.data() || {}}
+              initial={false}
+            />
+          );
+        })}
     </div>
   );
 }
