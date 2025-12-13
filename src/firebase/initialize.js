@@ -1,6 +1,8 @@
 import { initializeApp } from 'firebase/app'
 import { initializeFirestore, CACHE_SIZE_UNLIMITED } from 'firebase/firestore'
 
+import { getAuth, GoogleAuthProvider } from 'firebase/auth'
+
 // Firebase config values are in .env
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -14,6 +16,9 @@ const firebaseConfig = {
 console.log(firebaseConfig)
 
 const app = initializeApp(firebaseConfig)
+
+export const auth = getAuth(app)
+export const googleProvider = new GoogleAuthProvider()
 
 export default function getDb() {
   return initializeFirestore(app, {

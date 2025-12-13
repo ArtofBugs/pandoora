@@ -5,13 +5,17 @@ import { updateTask } from "./update-utils";
 
 import { collection } from "firebase/firestore";
 import { useCollection } from "react-firebase-hooks/firestore";
+import { useAuthState } from "react-firebase-hooks/auth";
 
-import getDb from "../firebase/initialize";
+import getDb, { auth } from "../firebase/initialize";
 
 // TODO: Allow assigning a quantity of rewards for a task
 // TODO: Allow claiming rewards from the task popup
 function RewardsMenu(props) {
-  const [value, loading, error] = useCollection(collection(getDb(), "store"));
+  const [user, _, __] = useAuthState(auth);
+  const [value, loading, error] = useCollection(
+    collection(getDb(), "users", user?.uid, "store")
+  );
   return (
     <label className="form-control w-full">
       <div className="label">

@@ -9,11 +9,12 @@ import {
   increment,
 } from "firebase/firestore";
 
-import getDb from "../firebase/initialize";
+import getDb, { auth } from "../firebase/initialize";
+import { useAuthState } from "react-firebase-hooks/auth";
 
-async function addStore(name, price, quantity) {
+async function addStore(name, price, quantity, user) {
   try {
-    await addDoc(collection(getDb(), "store"), {
+    await addDoc(collection(getDb(), "users", user, "store"), {
       name: name,
       price: Number(price),
       available: Number(quantity),
@@ -24,12 +25,12 @@ async function addStore(name, price, quantity) {
   }
 }
 
-async function updateStore(id, field, content, type) {
+async function updateStore(id, field, content, type, user) {
   if (type == "number") {
     content = Number(content);
   }
   try {
-    await updateDoc(doc(getDb(), "store", id), {
+    await updateDoc(doc(getDb(), "users", user, "store", id), {
       [field]: content,
     });
   } catch (e) {
@@ -37,17 +38,17 @@ async function updateStore(id, field, content, type) {
   }
 }
 
-async function deleteStore(id) {
+async function deleteStore(id, user) {
   try {
-    await deleteDoc(doc(getDb(), "store", id));
+    await deleteDoc(doc(getDb(), "users", user, "store", id));
   } catch (e) {
     console.error("Error updating document:", e);
   }
 }
 
-async function claimStore(id, amount) {
+async function claimStore(id, amount, user) {
   try {
-    await updateDoc(doc(getDb(), "store", id), {
+    await updateDoc(doc(getDb(), "users", user, "store", id), {
       claimed: increment(amount),
       available: increment(-amount),
     });
@@ -100,7 +101,12 @@ function EditableCell(props) {
 }
 
 function StoreRow(props) {
+  const [user, loading, error] = useAuthState(auth);
   const [toClaim, setToClaim] = useState(0);
+
+  if (loading || error) {
+    return;
+  }
   return (
     <tr className="table-row hover">
       <EditableCell
@@ -137,7 +143,7 @@ function StoreRow(props) {
             onClick={() => {
               toClaim >= 0 &&
                 toClaim <= props.data.available &&
-                claimStore(props.id, toClaim);
+                claimStore(props.id, toClaim, user?.uid);
             }}
           >
             Claim

@@ -3,8 +3,9 @@ import { useState } from "react";
 import { doc, updateDoc } from "firebase/firestore";
 import { collection } from "firebase/firestore";
 import { useCollection } from "react-firebase-hooks/firestore";
+import { useAuthState } from "react-firebase-hooks/auth";
 
-import getDb from "../firebase/initialize";
+import getDb, { auth } from "../firebase/initialize";
 
 // TODO: lots of duplication with task updating :(((
 async function updateSettings(id, field, content, type) {
@@ -74,8 +75,9 @@ function UserSettings(props) {
 // (different collections for different users preferable for access control)
 // TODO: Right now it's hardcoded to first result; figure something out eventually
 export default function Settings() {
+  const [user, _, __] = useAuthState(auth);
   const [value, loading, error] = useCollection(
-    collection(getDb(), "settings")
+    collection(getDb(), "users", user?.uid, "settings")
   );
   let data = value ? value.docs[0].data() : null;
   return (

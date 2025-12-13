@@ -6,11 +6,14 @@ import {
   deleteDoc,
 } from 'firebase/firestore'
 
-import getDb from '../firebase/initialize'
+import getDb, { auth } from '../firebase/initialize'
 
 export async function createLogEntry(content) {
   try {
-    await addDoc(collection(getDb(), 'log'), content)
+    await addDoc(
+      collection(getDb(), 'users', auth.currentUser?.uid, 'log'),
+      content
+    )
   } catch (e) {
     console.error('Error adding document:', e)
   }
@@ -18,7 +21,10 @@ export async function createLogEntry(content) {
 
 export async function updateLogEntry(id, content) {
   try {
-    await updateDoc(doc(getDb(), 'log', id), content)
+    await updateDoc(
+      doc(getDb(), 'users', auth.currentUser?.uid, 'log', id),
+      content
+    )
   } catch (e) {
     console.error('Error adding document:', e)
   }
@@ -26,7 +32,7 @@ export async function updateLogEntry(id, content) {
 
 export async function deleteLogEntry(id) {
   try {
-    await deleteDoc(doc(getDb(), 'log', id))
+    await deleteDoc(doc(getDb(), 'users', auth.currentUser?.uid, 'log', id))
   } catch (e) {
     console.error('Error deleting document:', e)
   }
