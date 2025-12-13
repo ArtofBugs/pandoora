@@ -217,6 +217,7 @@ function TaskRegion({ list }) {
               data={doc.data() || {}}
               initial={false}
               list={list}
+              repeating={false}
             />
           );
         })}
@@ -231,7 +232,7 @@ function TaskArea({ list }) {
     <div className="border flex grow gap-4 flex-col p-5">
       <TaskRegion list={list} />
       {editing ? (
-        <NewTask list={list} setEditing={setEditing} />
+        <NewTask list={list} setEditing={setEditing} repeating={false} />
       ) : (
         <AddEntryButton onClick={() => setEditing(true)} />
       )}

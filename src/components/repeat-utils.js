@@ -42,7 +42,8 @@ export function getToday() {
     5: 'F',
     6: 'Sa',
   }
-  return days[Date.prototype.getDay()]
+  const now = new Date()
+  return days[now.getDay()]
 }
 
 export const NOTES_PLACEHOLDER = 'Notes'

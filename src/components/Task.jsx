@@ -29,7 +29,7 @@ import { useDocument, useCollection } from "react-firebase-hooks/firestore";
 
 import getDb from "../firebase/initialize";
 
-export function TaskNew({ data, initial, id, list }) {
+export function TaskNew({ data, initial, id, list, repeating }) {
   const [editing, setEditing] = useState(initial ?? false); // set false if undefined
   const [content, setContent] = useState(data ?? {});
   const [collapseOpen, setCollapseOpen] = useState(false);
@@ -61,7 +61,7 @@ export function TaskNew({ data, initial, id, list }) {
               e.stopPropagation();
             }}
             onChange={() =>
-              updateTaskNew(list, id, { completed: !data.completed })
+              updateTaskNew(list, id, { completed: !data.completed }, repeating)
             }
           />
           {/* Title */}
@@ -131,7 +131,7 @@ export function TaskNew({ data, initial, id, list }) {
                 <SaveButton
                   onSave={(e) => {
                     e.preventDefault();
-                    updateTaskNew(list, id, content);
+                    updateTaskNew(list, id, content, repeating);
                     setEditing(false);
                   }}
                 />
@@ -144,7 +144,7 @@ export function TaskNew({ data, initial, id, list }) {
                 <DeleteButton
                   onDelete={(e) => {
                     e.preventDefault();
-                    deleteTaskNew(list, id);
+                    deleteTaskNew(list, id, repeating);
                   }}
                 />
               </SubmissionContainer>
@@ -158,7 +158,7 @@ export function TaskNew({ data, initial, id, list }) {
   );
 }
 
-export function NewTask({ list, setEditing }) {
+export function NewTask({ list, setEditing, repeating }) {
   const [content, setContent] = useState(TASK_FIELDS);
   const [collapseOpen, setCollapseOpen] = useState(true);
   console.log("content");
@@ -217,7 +217,7 @@ export function NewTask({ list, setEditing }) {
               <SaveButton
                 onSave={(e) => {
                   e.preventDefault();
-                  createTaskNew(list, content);
+                  createTaskNew(list, content, repeating);
                   setEditing(false);
                 }}
               />
@@ -278,7 +278,11 @@ function NotesInput({ content, setContent }) {
 function TimeArea({ editing, content, setContent }) {
   return (
     <ul className="list">
-      <li className="tracking-wide font-extrabold">Time Tracking</li>
+      {editing || content.time ? (
+        <li className="tracking-wide font-extrabold">Time Tracking</li>
+      ) : (
+        <></>
+      )}
       {editing ? (
         <TimeInput content={content} setContent={setContent} />
       ) : (
@@ -384,7 +388,7 @@ function RepeatArea({ content, setContent, editing }) {
   const DAYS_ORDER = ["Su", "M", "Tu", "W", "Th", "F", "Sa"];
   return (
     <div>
-      <RepeatLabel label="Repeats " />
+      <RepeatLabel label="Days " />
       {DAYS_ORDER.map((day, i) => (
         <RepeatButton
           key={i}

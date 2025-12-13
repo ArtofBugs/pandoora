@@ -11,3 +11,5 @@
 - Stopwatch for tasks that can auto-track time for you (can be overwritten; recorded value will also be saved in case it needs to be retrieved)
 - Allow more flexibility for estimated/actual time inputs (e.g. by minutes, hours, time/date range, etc.) - this could be just a string field, or it could provide options to pick from
 - Switch to using a currency system for store?
+- Allow creating templates for repeating whole lists???
+- Bug: new repeating tasks get added to the top

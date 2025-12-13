@@ -48,12 +48,7 @@ export function EditButton({ onEdit }) {
 
 export function DeleteButton({ onDelete }) {
   return (
-    <button
-      onClick={(e) => {
-        e.preventDefault();
-        onDelete();
-      }}
-    >
+    <button onClick={onDelete}>
       <FontAwesomeIcon
         icon={faTrashCan}
         className="text-gray-300 active:text-red-500 hover:text-red-500 p-1"
