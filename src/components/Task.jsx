@@ -11,6 +11,7 @@ import {
   updateTaskNew,
   deleteTaskNew,
   NOTES_PLACEHOLDER,
+  TASK_FIELDS,
 } from "./task-utils";
 
 import {
@@ -63,7 +64,6 @@ export function TaskNew({ data, initial, id, list }) {
               updateTaskNew(list, id, { completed: !data.completed })
             }
           />
-
           {/* Title */}
           {editing ? (
             <TitleInput content={content} setContent={setContent} />
@@ -96,6 +96,14 @@ export function TaskNew({ data, initial, id, list }) {
                 editing={editing}
               />
             </fieldset>
+            {/* Repeating */}
+            <fieldset className="fieldset">
+              <RepeatArea
+                content={content}
+                setContent={setContent}
+                editing={editing}
+              />
+            </fieldset>
             {/* Earns */}
             <fieldset className="flex flex-row gap-2 justify-start align-middle">
               <EarnsLabel />
@@ -121,18 +129,21 @@ export function TaskNew({ data, initial, id, list }) {
             {editing ? (
               <SubmissionContainer>
                 <SaveButton
-                  onSave={() => {
+                  onSave={(e) => {
+                    e.preventDefault();
                     updateTaskNew(list, id, content);
                     setEditing(false);
                   }}
                 />
                 <CancelButton
-                  onCancel={() => {
+                  onCancel={(e) => {
+                    e.preventDefault();
                     setEditing(false);
                   }}
                 />
                 <DeleteButton
-                  onDelete={() => {
+                  onDelete={(e) => {
+                    e.preventDefault();
                     deleteTaskNew(list, id);
                   }}
                 />
@@ -140,6 +151,84 @@ export function TaskNew({ data, initial, id, list }) {
             ) : (
               <div />
             )}
+          </div>
+        </div>
+      </form>
+    </div>
+  );
+}
+
+export function NewTask({ list, setEditing }) {
+  const [content, setContent] = useState(TASK_FIELDS);
+  const [collapseOpen, setCollapseOpen] = useState(true);
+  console.log("content");
+  console.log(content);
+
+  return (
+    <div
+      className={
+        "collapse collapse-arrow bg-base-100 border-base-300 border" +
+        (collapseOpen ? " collapse-open" : "")
+      }
+    >
+      {/* Header */}
+      <div
+        className="collapse-title font-semibold"
+        onClick={() => setCollapseOpen(!collapseOpen)}
+      >
+        {/* Title */}
+        <TitleInput content={content} setContent={setContent} />
+      </div>
+      {/* Content */}
+      <form className="collapse-content text-sm flex flex-col gap-10">
+        <div className="flex flex-row gap-4">
+          <div className="flex flex-col gap-4">
+            {/* Time */}
+            <fieldset className="fieldset flex-1">
+              <TimeArea
+                content={content}
+                setContent={setContent}
+                editing={true}
+              />
+            </fieldset>
+            {/* Repeating */}
+            <fieldset className="fieldset">
+              <RepeatArea
+                content={content}
+                setContent={setContent}
+                editing={true}
+              />
+            </fieldset>
+            {/* Earns */}
+            <fieldset className="flex flex-row gap-2 justify-start align-middle">
+              <EarnsLabel />
+              <EarnsInput content={content} setContent={setContent} />
+            </fieldset>
+          </div>
+          {/* Notes */}
+          <fieldset className="fieldset flex-1 flex">
+            <NotesInput content={content} setContent={setContent} />
+          </fieldset>
+        </div>
+        <div>
+          {/* Buttons */}
+          <div>
+            <SubmissionContainer>
+              <SaveButton
+                onSave={(e) => {
+                  e.preventDefault();
+                  createTaskNew(list, content);
+                  setEditing(false);
+                }}
+              />
+              <CancelButton
+                onCancel={(e) => {
+                  e.preventDefault();
+                  setContent({});
+                  setEditing(false);
+                }}
+              />
+            </SubmissionContainer>
           </div>
         </div>
       </form>
@@ -288,6 +377,49 @@ function EarnsInput({ content, setContent, hint }) {
       ></input>
       {/* <div className="validator-hint">{hint || "Invalid value."}</div> */}
     </div>
+  );
+}
+
+function RepeatArea({ content, setContent, editing }) {
+  const DAYS_ORDER = ["Su", "M", "Tu", "W", "Th", "F", "Sa"];
+  return (
+    <div>
+      <RepeatLabel label="Repeats " />
+      {DAYS_ORDER.map((day, i) => (
+        <RepeatButton
+          key={i}
+          text={day}
+          editing={editing}
+          repeat={content.repeats[day] ?? false}
+          toggleRepeat={() =>
+            setContent({
+              ...content,
+              repeats: { ...content.repeats, [day]: !content.repeats[day] },
+            })
+          }
+        />
+      ))}
+    </div>
+  );
+}
+
+function RepeatLabel({ label }) {
+  return <div className="flex-1 h-min">{label ?? ""}</div>;
+}
+
+function RepeatButton({ text, editing, repeat, toggleRepeat }) {
+  return (
+    // TODO: Use a checkbox to make this a toggle?
+    <button
+      className={"btn rounded-full" + (repeat ? " bg-accent" : "")}
+      disabled={!editing}
+      onClick={(e) => {
+        e.preventDefault();
+        toggleRepeat();
+      }}
+    >
+      {text}
+    </button>
   );
 }
 

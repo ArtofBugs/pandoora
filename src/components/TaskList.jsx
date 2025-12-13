@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlusCircle } from "@fortawesome/free-solid-svg-icons";
 import Draggable from "react-draggable";
 
-import { TaskNew, Task } from "./Task";
+import { TaskNew, NewTask, Task } from "./Task";
 import AddEntryButton, {
   SaveButton,
   CancelButton,
@@ -231,8 +231,7 @@ function TaskArea({ list }) {
     <div className="border flex grow gap-4 flex-col p-5">
       <TaskRegion list={list} />
       {editing ? (
-        // <NewTask data={{}} setEditing={setEditing} />
-        <></>
+        <NewTask list={list} setEditing={setEditing} />
       ) : (
         <AddEntryButton onClick={() => setEditing(true)} />
       )}

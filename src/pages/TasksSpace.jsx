@@ -10,7 +10,6 @@ import getDb from "../firebase/initialize";
 import { NavLink } from "react-router-dom";
 
 export default function TasksSpace() {
-  // Only grab the whole collection once and handle hiding non-shown lists on the client side
   const [value, loading, error] = useCollection(
     collection(getDb(), "listsnew")
   );
@@ -34,17 +33,33 @@ export default function TasksSpace() {
                 id={doc.id}
                 data={doc.data() || {}}
                 initial={false}
+                repeating={true}
               />
             );
           })}
       </div>
-      <div className="flex justify-end m-10">
-        <div className="link link-hover">
-          <NavLink to="/store">To store &gt;&gt;</NavLink>
-        </div>
+      <div className="flex justify-between m-10">
+        <RepeatsLink />
+        <StoreLink />
       </div>
     </div>
   );
 }
 
-function StoreLink() {}
+function RepeatsLink() {
+  return (
+    <NavLink to="/repeats">
+      <button className="btn border-gray-200 text-gray-800 font-normal">
+        Switch to repeating tasks view
+      </button>
+    </NavLink>
+  );
+}
+
+function StoreLink() {
+  return (
+    <div className="link link-hover">
+      <NavLink to="/store">To store &gt;&gt;</NavLink>
+    </div>
+  );
+}

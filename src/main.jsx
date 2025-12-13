@@ -7,6 +7,7 @@ import Home from "./pages/Home.jsx";
 import Settings from "./pages/Settings.jsx";
 import LogSpace from "./pages/LogSpace.jsx";
 import TasksSpace from "./pages/TasksSpace.jsx";
+import RepeatsSpace from "./pages/RepeatsSpace.jsx";
 import Store from "./pages/Store.jsx";
 import "./index.css";
 
@@ -17,6 +18,7 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <Home /> },
       { path: "tasks", element: <TasksSpace /> },
+      { path: "repeats", element: <RepeatsSpace /> },
       { path: "log", element: <LogSpace /> },
       { path: "store", element: <Store /> },
       { path: "settings", element: <Settings /> },
