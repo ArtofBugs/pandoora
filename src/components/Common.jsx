@@ -25,7 +25,13 @@ export function SaveButton({ onSave }) {
 
 export function CancelButton({ onCancel }) {
   return (
-    <button className="btn" onClick={onCancel}>
+    <button
+      className="btn"
+      onClick={(e) => {
+        e.preventDefault();
+        onCancel();
+      }}
+    >
       Cancel
     </button>
   );

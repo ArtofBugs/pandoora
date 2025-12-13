@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlusCircle } from "@fortawesome/free-solid-svg-icons";
 import Draggable from "react-draggable";
 
-import { TaskNew, Task } from "./Task";
+import { TaskNew, NewTask, Task } from "./Task";
 import AddEntryButton, {
   SaveButton,
   CancelButton,
@@ -98,6 +98,7 @@ export function TaskListNew({ data, initial, id }) {
             />
             <CancelButton
               onCancel={() => {
+                setContent(data);
                 setEditing(false);
               }}
             />
@@ -153,8 +154,7 @@ export function NewTaskList({ setEditing }) {
               }}
             />
             <CancelButton
-              onCancel={(e) => {
-                e.preventDefault();
+              onCancel={() => {
                 setContent({});
                 setEditing(false);
               }}
@@ -217,6 +217,7 @@ function TaskRegion({ list }) {
               data={doc.data() || {}}
               initial={false}
               list={list}
+              repeating={false}
             />
           );
         })}
@@ -231,8 +232,7 @@ function TaskArea({ list }) {
     <div className="border flex grow gap-4 flex-col p-5">
       <TaskRegion list={list} />
       {editing ? (
-        // <NewTask data={{}} setEditing={setEditing} />
-        <></>
+        <NewTask list={list} setEditing={setEditing} repeating={false} />
       ) : (
         <AddEntryButton onClick={() => setEditing(true)} />
       )}
