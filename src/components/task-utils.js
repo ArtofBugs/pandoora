@@ -7,7 +7,7 @@ import {
   arrayUnion,
 } from 'firebase/firestore'
 
-import getDb from '../firebase/initialize'
+import getDb, { auth } from '../firebase/initialize'
 
 export async function createTaskNew(list, content, repeating) {
   // For model-accurate repeating tasks, I need canonical tasks with
@@ -44,13 +44,26 @@ export async function createTaskNew(list, content, repeating) {
 
   if (repeating) {
     try {
-      await addDoc(collection(getDb(), 'repeats'), content)
+      await addDoc(
+        collection(getDb(), 'users', auth.currentUser?.uid, 'repeats'),
+        content
+      )
     } catch (e) {
       console.error('Error adding document:', e)
     }
   } else {
     try {
-      await addDoc(collection(getDb(), 'listsnew', list, 'tasks'), content)
+      await addDoc(
+        collection(
+          getDb(),
+          'users',
+          auth.currentUser?.uid,
+          'listsnew',
+          list,
+          'tasks'
+        ),
+        content
+      )
     } catch (e) {
       console.error('Error adding document:', e)
     }
@@ -60,13 +73,27 @@ export async function createTaskNew(list, content, repeating) {
 export async function updateTaskNew(list, task, content, repeating) {
   if (repeating) {
     try {
-      await updateDoc(doc(getDb(), 'repeats', task), content)
+      await updateDoc(
+        doc(getDb(), 'users', auth.currentUser?.uid, 'repeats', task),
+        content
+      )
     } catch (e) {
       console.error('Error adding document:', e)
     }
   } else {
     try {
-      await updateDoc(doc(getDb(), 'listsnew', list, 'tasks', task), content)
+      await updateDoc(
+        doc(
+          getDb(),
+          'users',
+          auth.currentUser?.uid,
+          'listsnew',
+          list,
+          'tasks',
+          task
+        ),
+        content
+      )
     } catch (e) {
       console.error('Error adding document:', e)
     }
@@ -76,13 +103,25 @@ export async function updateTaskNew(list, task, content, repeating) {
 export async function deleteTaskNew(list, task, repeating) {
   if (repeating) {
     try {
-      await deleteDoc(doc(getDb(), 'repeats', task))
+      await deleteDoc(
+        doc(getDb(), 'users', auth.currentUser?.uid, 'repeats', task)
+      )
     } catch (e) {
       console.error('Error deleting document:', e)
     }
   } else {
     try {
-      await deleteDoc(doc(getDb(), 'listsnew', list, 'tasks', task))
+      await deleteDoc(
+        doc(
+          getDb(),
+          'users',
+          auth.currentUser?.uid,
+          'listsnew',
+          list,
+          'tasks',
+          task
+        )
+      )
     } catch (e) {
       console.error('Error deleting document:', e)
     }

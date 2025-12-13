@@ -5,13 +5,15 @@ import AddEntryButton from "../components/Common";
 
 import { collection } from "firebase/firestore";
 import { useCollection } from "react-firebase-hooks/firestore";
+import { useAuthState } from "react-firebase-hooks/auth";
 
-import getDb from "../firebase/initialize";
+import getDb, { auth } from "../firebase/initialize";
 import { NavLink } from "react-router-dom";
 
 export default function TasksSpace() {
+  const [user, _, __] = useAuthState(auth);
   const [value, loading, error] = useCollection(
-    collection(getDb(), "listsnew")
+    collection(getDb(), "users", user?.uid, "listsnew")
   );
   const [editing, setEditing] = useState(false);
 

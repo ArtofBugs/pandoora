@@ -30,8 +30,9 @@ import {
   getDoc,
 } from "firebase/firestore";
 import { useDocument, useCollection } from "react-firebase-hooks/firestore";
+import { useAuthState } from "react-firebase-hooks/auth";
 
-import getDb from "../firebase/initialize";
+import getDb, { auth } from "../firebase/initialize";
 
 export function TaskNew({ data, initial, id, list, repeating }) {
   const [editing, setEditing] = useState(initial ?? false); // set false if undefined
@@ -439,8 +440,9 @@ function SubmissionContainer({ children }) {
 }
 
 function OverwriteDropdown({ setContent }) {
+  const [user, _, __] = useAuthState(auth);
   const [repeats, loading, error] = useCollection(
-    collection(getDb(), "repeats")
+    collection(getDb(), "users", user?.uid, "repeats")
   );
 
   if (error) {
@@ -587,9 +589,12 @@ function EditableField(props) {
 }
 
 function MoveMenu(props) {
+  const [user, _, __] = useAuthState(auth);
   // TODO: split between tasks in current list and just other lists;
   // don't allow moving to tasks in other lists
-  const [value, loading, error] = useCollection(collection(getDb(), "tasks"));
+  const [value, loading, error] = useCollection(
+    collection(getDb(), "users", user?.uid, "tasks")
+  );
   return (
     <div
       ref={props.refs}

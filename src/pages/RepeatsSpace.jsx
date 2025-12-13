@@ -3,13 +3,17 @@ import { NavLink } from "react-router-dom";
 
 import { collection, updateDoc } from "firebase/firestore";
 import { useCollection } from "react-firebase-hooks/firestore";
+import { useAuthState } from "react-firebase-hooks/auth";
 
 import { TaskNew, NewTask } from "../components/Task";
 import AddEntryButton from "../components/Common";
-import getDb from "../firebase/initialize";
+import getDb, { auth } from "../firebase/initialize";
 
 export default function RepeatsSpace() {
-  const [value, loading, error] = useCollection(collection(getDb(), "repeats"));
+  const [user, _, __] = useAuthState(auth);
+  const [value, loading, error] = useCollection(
+    collection(getDb(), "users", user?.uid, "repeats")
+  );
   const [editing, setEditing] = useState(false);
 
   return (

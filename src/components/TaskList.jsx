@@ -25,8 +25,9 @@ import {
   arrayUnion,
 } from "firebase/firestore";
 import { useCollection } from "react-firebase-hooks/firestore";
+import { useAuthState } from "react-firebase-hooks/auth";
 
-import getDb from "../firebase/initialize";
+import getDb, { auth } from "../firebase/initialize";
 
 export function TaskListNew({ data, initial, id }) {
   const [editing, setEditing] = useState(initial ?? false); // set false if undefined
@@ -200,8 +201,9 @@ function NotesInput({ content, setContent }) {
 }
 
 function TaskRegion({ list }) {
+  const [user, _, __] = useAuthState(auth);
   const [value, loading, error] = useCollection(
-    collection(getDb(), "listsnew", list, "tasks")
+    collection(getDb(), "users", user?.uid, "listsnew", list, "tasks")
   );
 
   return (
