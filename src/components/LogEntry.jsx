@@ -84,6 +84,7 @@ export function LogEntry({ data, initial, id }) {
               />
               <CancelButton
                 onCancel={() => {
+                  setContent(data);
                   setEditing(false);
                 }}
               />
@@ -147,8 +148,7 @@ export function NewLogEntry({ setEditing }) {
               }}
             />
             <CancelButton
-              onCancel={(e) => {
-                e.preventDefault();
+              onCancel={() => {
                 setContent({});
                 setEditing(false);
               }}

@@ -1,6 +1,10 @@
 import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArrowRight, faTrashCan } from "@fortawesome/free-solid-svg-icons";
+import {
+  faArrowRight,
+  faTrashCan,
+  faEllipsisVertical,
+} from "@fortawesome/free-solid-svg-icons";
 import { useFloating } from "@floating-ui/react-dom";
 
 import { updateTask } from "./update-utils";
@@ -128,6 +132,7 @@ export function TaskNew({ data, initial, id, list, repeating }) {
           <div>
             {editing ? (
               <SubmissionContainer>
+                <OverwriteDropdown setContent={setContent} />
                 <SaveButton
                   onSave={(e) => {
                     e.preventDefault();
@@ -136,14 +141,13 @@ export function TaskNew({ data, initial, id, list, repeating }) {
                   }}
                 />
                 <CancelButton
-                  onCancel={(e) => {
-                    e.preventDefault();
+                  onCancel={() => {
+                    setContent(data);
                     setEditing(false);
                   }}
                 />
                 <DeleteButton
-                  onDelete={(e) => {
-                    e.preventDefault();
+                  onDelete={() => {
                     deleteTaskNew(list, id, repeating);
                   }}
                 />
@@ -214,6 +218,7 @@ export function NewTask({ list, setEditing, repeating }) {
           {/* Buttons */}
           <div>
             <SubmissionContainer>
+              <OverwriteDropdown setContent={setContent} />
               <SaveButton
                 onSave={(e) => {
                   e.preventDefault();
@@ -222,8 +227,7 @@ export function NewTask({ list, setEditing, repeating }) {
                 }}
               />
               <CancelButton
-                onCancel={(e) => {
-                  e.preventDefault();
+                onCancel={() => {
                   setContent({});
                   setEditing(false);
                 }}
@@ -413,9 +417,12 @@ function RepeatLabel({ label }) {
 
 function RepeatButton({ text, editing, repeat, toggleRepeat }) {
   return (
-    // TODO: Use a checkbox to make this a toggle?
     <button
-      className={"btn rounded-full" + (repeat ? " bg-accent" : "")}
+      className={
+        "btn rounded-full" +
+        (repeat ? " bg-accent" : "") +
+        (editing ? " text-primary" : " text-neutral")
+      }
       disabled={!editing}
       onClick={(e) => {
         e.preventDefault();
@@ -429,6 +436,46 @@ function RepeatButton({ text, editing, repeat, toggleRepeat }) {
 
 function SubmissionContainer({ children }) {
   return <div className="flex justify-end gap-4 h-max">{children}</div>;
+}
+
+function OverwriteDropdown({ setContent }) {
+  const [repeats, loading, error] = useCollection(
+    collection(getDb(), "repeats")
+  );
+
+  if (error) {
+    console.error("Error retrieving repeating tasks for dropdown:", error);
+  }
+  return (
+    <div className="dropdown dropdown-top">
+      <div tabIndex={0} role="button" className="btn btn-ghost rounded-full ">
+        <FontAwesomeIcon icon={faEllipsisVertical} />
+      </div>
+      <ul
+        tabIndex="-1"
+        className="dropdown-content menu bg-base-100 rounded-box z-0 w-52 p-0 shadow-sm"
+      >
+        <li>
+          <select
+            defaultValue="Replace with repeating template"
+            className="select w-min"
+          >
+            <option disabled={true}>Replace with repeating template</option>
+            {loading && <option disabled={true}>Loading templates...</option>}
+            {repeats &&
+              repeats.docs.map((doc) => {
+                const data = doc.data();
+                return (
+                  <option key={doc.id} onClick={() => setContent(data)}>
+                    {data.title}
+                  </option>
+                );
+              })}
+          </select>
+        </li>
+      </ul>
+    </div>
+  );
 }
 
 /* ============================================================================================= */

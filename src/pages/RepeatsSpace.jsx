@@ -16,7 +16,7 @@ export default function RepeatsSpace() {
     <div className="ml-10 mr-10 flex flex-col gap-4">
       <div className="flex flex-row justify-between align-bottom">
         <RepeatsHeading />
-        <ClearAllButton content={value.docs} />
+        <ClearAllButton content={value && value.docs} />
       </div>
       <div className="flex gap-4 flex-col">
         {error && <p>Error: {JSON.stringify(error)}</p>}

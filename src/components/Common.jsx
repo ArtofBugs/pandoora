@@ -25,7 +25,13 @@ export function SaveButton({ onSave }) {
 
 export function CancelButton({ onCancel }) {
   return (
-    <button className="btn" onClick={onCancel}>
+    <button
+      className="btn"
+      onClick={(e) => {
+        e.preventDefault();
+        onCancel();
+      }}
+    >
       Cancel
     </button>
   );
@@ -48,7 +54,12 @@ export function EditButton({ onEdit }) {
 
 export function DeleteButton({ onDelete }) {
   return (
-    <button onClick={onDelete}>
+    <button
+      onClick={(e) => {
+        e.preventDefault();
+        onDelete();
+      }}
+    >
       <FontAwesomeIcon
         icon={faTrashCan}
         className="text-gray-300 active:text-red-500 hover:text-red-500 p-1"

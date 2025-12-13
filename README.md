@@ -12,4 +12,6 @@
 - Allow more flexibility for estimated/actual time inputs (e.g. by minutes, hours, time/date range, etc.) - this could be just a string field, or it could provide options to pick from
 - Switch to using a currency system for store?
 - Allow creating templates for repeating whole lists???
+- Archive for repeating tasks that aren't repeating this week but you still want to keep
 - Bug: new repeating tasks get added to the top
+- Visual issues: cursor not being the pointer in places it would be expected to be
