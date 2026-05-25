@@ -4,14 +4,11 @@ import { useLocation, NavLink } from "react-router-dom";
 // import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 // import { faMoon, faSun } from "@fortawesome/free-regular-svg-icons";
 
-import { useAuthState } from "react-firebase-hooks/auth";
-import { signInWithPopup, signOut } from "firebase/auth";
-
-import { auth, googleProvider } from "../firebase/initialize";
+import { useSupabaseAuth } from "../supabase/useSupabaseAuth";
+import { supabase } from "../supabase/client";
 
 export function Header() {
-  // TODO: Implement focused task stuff
-  const [user, loading, error] = useAuthState(auth);
+  const [user, loading, error] = useSupabaseAuth();
   const [focusedTask, setFocusedTask] = useState("None");
   const path = useLocation().pathname.toLowerCase();
 
@@ -23,7 +20,6 @@ export function Header() {
   if (loading) {
     return (
       <header className="navbar shadow-lg p-0 mb-10">
-        {/* Logo */}
         <h1 className="navbar-start flex-0 bg-slate-300 h-full m-0 p-5 flex align-middle justify-center">
           <NavLink to="/">Pandoora</NavLink>
         </h1>
@@ -61,7 +57,7 @@ export function Header() {
           Focus task: {focusedTask}
         </h1>
         {/* Sign-In */}
-        <SignInButton />
+        <SignInButton user={user} loading={loading} error={error} />
         {/* TODO: Dark theme?? */}
         {/* Theme switch */}
         {/* <label className="flex-0 swap swap-rotate p-5" htmlFor="theme-switch">
@@ -79,39 +75,21 @@ export function Header() {
   );
 }
 
-// Adapted the auth hook stuff from a helpful tutorial from Google's AI Overview,
-// since react-firebase-hooks is generally *very* lacking in documentation.
-function SignInButton() {
-  const [user, loading, error] = useAuthState(auth);
-
+function SignInButton({ user, loading, error }) {
   return (
     <button
       className="btn"
       disabled={loading || error}
       onClick={user ? signOutAction : signInAction}
     >
-      {user ? "Sign Out as " + user.displayName : "Sign In"}
+      {user ? "Sign Out as " + user.email : "Sign In"}
     </button>
   );
-
-  // const [_, user, loading, error] = useSignInWithGoogle(auth);
-  // console.log("user:");
-  // console.log(user);
-  // return (
-  //   <button
-  //     className="btn"
-  //     disabled={loading || error}
-  //     onClick={user ? signOut : signIn}
-  //   >
-  //     {user ? "Sign Out as " + user.user.displayName : "Sign In"}
-  //   </button>
-  // );
 }
 
-// Use Sign in with Google
 async function signInAction() {
   try {
-    await signInWithPopup(auth, googleProvider);
+    await supabase.auth.signInWithOAuth({ provider: "google" });
   } catch (e) {
     console.error("Sign-in error:", e);
   }
@@ -119,7 +97,7 @@ async function signInAction() {
 
 async function signOutAction() {
   try {
-    await signOut(auth);
+    await supabase.auth.signOut();
   } catch (e) {
     console.error("Error signing out:", e);
   }

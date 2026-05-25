@@ -1,20 +1,10 @@
 import { useState } from "react";
-
-import {
-  collection,
-  doc,
-  addDoc,
-  updateDoc,
-  deleteDoc,
-  increment,
-} from "firebase/firestore";
-
-import getDb, { auth } from "../firebase/initialize";
-import { useAuthState } from "react-firebase-hooks/auth";
+import { supabase } from "../supabase/client";
 
 async function addStore(name, price, quantity, user) {
   try {
-    await addDoc(collection(getDb(), "users", user, "store"), {
+    await supabase.from("store").insert({
+      user_id: user,
       name: name,
       price: Number(price),
       available: Number(quantity),
@@ -26,13 +16,15 @@ async function addStore(name, price, quantity, user) {
 }
 
 async function updateStore(id, field, content, type, user) {
-  if (type == "number") {
+  if (type === "number") {
     content = Number(content);
   }
   try {
-    await updateDoc(doc(getDb(), "users", user, "store", id), {
-      [field]: content,
-    });
+    await supabase
+      .from("store")
+      .update({ [field]: content })
+      .eq("id", id)
+      .eq("user_id", user);
   } catch (e) {
     console.error("Error updating document:", e);
   }
@@ -40,42 +32,49 @@ async function updateStore(id, field, content, type, user) {
 
 async function deleteStore(id, user) {
   try {
-    await deleteDoc(doc(getDb(), "users", user, "store", id));
+    await supabase.from("store").delete().eq("id", id).eq("user_id", user);
   } catch (e) {
-    console.error("Error updating document:", e);
+    console.error("Error deleting document:", e);
   }
 }
 
 async function claimStore(id, amount, user) {
   try {
-    await updateDoc(doc(getDb(), "users", user, "store", id), {
-      claimed: increment(amount),
-      available: increment(-amount),
-    });
-    console.log(`Claimed ${amount} of reward ${id}`);
+    const { data: current } = await supabase
+      .from("store")
+      .select("claimed, available")
+      .eq("id", id)
+      .single();
+
+    await supabase
+      .from("store")
+      .update({
+        claimed: (current?.claimed || 0) + amount,
+        available: (current?.available || 0) - amount,
+      })
+      .eq("id", id)
+      .eq("user_id", user);
   } catch (e) {
     console.error("Error claiming reward:", e);
   }
 }
 
-// TODO: most code repeats with TaskList's EditableField; can this be refactored into its own component?
-// Maybe have this be just the content of the cell instead of cell itself
 function EditableCell(props) {
   const [editing, setEditing] = useState(false);
   const [content, setContent] = useState(
-    props.content || props.default_value || (props.type == "number" ? 0 : "")
+    props.content || props.default_value || (props.type === "number" ? 0 : ""),
   );
+
   return (
     <td
       onDoubleClick={() => {
         setEditing(true);
-        // Update to latest content
         setContent(props.content);
       }}
       onBlur={(e) => {
-        if (e.target.checkValidity()) {
+        if (e.target.checkValidity?.() !== false) {
           setEditing(false);
-          updateStore(props.id, props.field, content, props.type);
+          updateStore(props.id, props.field, content, props.type, props.userId);
         }
       }}
     >
@@ -101,12 +100,8 @@ function EditableCell(props) {
 }
 
 function StoreRow(props) {
-  const [user, loading, error] = useAuthState(auth);
   const [toClaim, setToClaim] = useState(0);
 
-  if (loading || error) {
-    return;
-  }
   return (
     <tr className="table-row hover">
       <EditableCell
@@ -114,6 +109,7 @@ function StoreRow(props) {
         field="name"
         type="text"
         content={props.data.name || `Untitled reward ${props.id}`}
+        userId={props.userId}
       />
       <EditableCell
         id={props.id}
@@ -122,6 +118,7 @@ function StoreRow(props) {
         field="price"
         type="number"
         content={props.data.price}
+        userId={props.userId}
       />
       <EditableCell
         id={props.id}
@@ -130,6 +127,7 @@ function StoreRow(props) {
         field="available"
         type="number"
         content={props.data.available}
+        userId={props.userId}
       />
       <td>
         <form
@@ -143,7 +141,7 @@ function StoreRow(props) {
             onClick={() => {
               toClaim >= 0 &&
                 toClaim <= props.data.available &&
-                claimStore(props.id, toClaim, user?.uid);
+                claimStore(props.id, toClaim, props.userId);
             }}
           >
             Claim
@@ -156,10 +154,7 @@ function StoreRow(props) {
               max={props.data.available}
               value={toClaim}
               onClick={(e) => {
-                // Prevent clicking in the input box from submitting the button
                 e.stopPropagation();
-                // stopImmediatePropagation only works this way:
-                // https://stackoverflow.com/questions/24415631/reactjs-syntheticevent-stoppropagation-only-works-with-react-events
                 e.nativeEvent.stopImmediatePropagation();
               }}
               onChange={(e) => {
@@ -172,7 +167,7 @@ function StoreRow(props) {
       <th>
         <button
           className="btn btn-ghost btn-xs text-red-700"
-          onClick={() => deleteStore(props.id)}
+          onClick={() => deleteStore(props.id, props.userId)}
         >
           delete
         </button>
@@ -186,10 +181,11 @@ export default function StoreTable(props) {
   const [newPrice, setNewPrice] = useState(0);
   const [newQuantity, setNewQuantity] = useState(0);
 
-  console.log(props.value && props.value.docs);
-  //   const [newDescription, setNewDescription] = useState("");
+  if (!props.user?.id) {
+    return <p>Please sign in to use the Store.</p>;
+  }
+
   return (
-    // <div className="overflow-x-auto">
     <div className="w-screen p-2">
       <h1 className="font-bold text-xl w-full">Store</h1>
       <table className="table w-full">
@@ -215,7 +211,12 @@ export default function StoreTable(props) {
           )}
           {props.value &&
             props.value.docs.map((doc) => (
-              <StoreRow key={doc.id} id={doc.id} data={doc.data()} />
+              <StoreRow
+                key={doc.id}
+                id={doc.id}
+                data={doc.data()}
+                userId={props.user.id}
+              />
             ))}
         </tbody>
 
@@ -260,7 +261,7 @@ export default function StoreTable(props) {
                   onClick={() => {
                     newPrice >= 0 &&
                       newQuantity >= 0 &&
-                      addStore(newName, newPrice, newQuantity);
+                      addStore(newName, newPrice, newQuantity, props.user.id);
                   }}
                 >
                   Add
@@ -272,10 +273,7 @@ export default function StoreTable(props) {
                     form="storeAddForm"
                     value={newQuantity}
                     onClick={(e) => {
-                      // Prevent clicking in the input box from submitting the button
                       e.stopPropagation();
-                      // stopImmediatePropagation only works this way:
-                      // https://stackoverflow.com/questions/24415631/reactjs-syntheticevent-stoppropagation-only-works-with-react-events
                       e.nativeEvent.stopImmediatePropagation();
                     }}
                     onChange={(e) => {

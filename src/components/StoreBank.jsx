@@ -1,14 +1,19 @@
 import { useState } from "react";
+import { supabase } from "../supabase/client";
 
-import { doc, updateDoc, increment } from "firebase/firestore";
-
-import getDb from "../firebase/initialize";
-
-async function useReward(id, amount) {
+async function useReward(id, amount, userId) {
   try {
-    await updateDoc(doc(getDb(), "store", id), {
-      claimed: increment(-amount),
-    });
+    const { data: current } = await supabase
+      .from("store")
+      .select("claimed")
+      .eq("id", id)
+      .single();
+
+    await supabase
+      .from("store")
+      .update({ claimed: (current?.claimed || 0) - amount })
+      .eq("id", id)
+      .eq("user_id", userId);
   } catch (e) {
     console.error("Error using reward:", e);
   }
@@ -16,9 +21,10 @@ async function useReward(id, amount) {
 
 function StoreBankCard(props) {
   if (!props.data.claimed) {
-    return;
+    return null;
   }
   const [toUse, setToUse] = useState(0);
+
   return (
     <div className="card bg-primary-content w-30 m-5">
       <div className="card-body">
@@ -36,7 +42,7 @@ function StoreBankCard(props) {
               onClick={() => {
                 toUse >= 0 &&
                   toUse <= props.data.claimed &&
-                  useReward(props.id, toUse);
+                  useReward(props.id, toUse, props.userId);
               }}
             >
               <p>Use</p>
@@ -50,10 +56,7 @@ function StoreBankCard(props) {
                   max={props.data.claimed}
                   value={toUse}
                   onClick={(e) => {
-                    // Prevent clicking in the input box from submitting the button
                     e.stopPropagation();
-                    // stopImmediatePropagation only works this way:
-                    // https://stackoverflow.com/questions/24415631/reactjs-syntheticevent-stoppropagation-only-works-with-react-events
                     e.nativeEvent.stopImmediatePropagation();
                   }}
                   onChange={(e) => {
@@ -70,6 +73,10 @@ function StoreBankCard(props) {
 }
 
 export default function StoreBank(props) {
+  if (!props.user?.id) {
+    return <p>Please sign in to use the Store.</p>;
+  }
+
   return (
     <div className="p-2 w-screen">
       <div className="rounded-lg bg-neutral-content p-4 w-full m-0">
@@ -80,7 +87,12 @@ export default function StoreBank(props) {
           {props.loading && <p>Loading...</p>}
           {props.value &&
             props.value.docs.map((doc) => (
-              <StoreBankCard key={doc.id} id={doc.id} data={doc.data()} />
+              <StoreBankCard
+                key={doc.id}
+                id={doc.id}
+                data={doc.data()}
+                userId={props.user.id}
+              />
             ))}
         </div>
       </div>
