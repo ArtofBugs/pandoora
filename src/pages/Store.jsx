@@ -10,10 +10,10 @@ import { useSupabaseAuth } from "../supabase/useSupabaseAuth";
 import { NavLink } from "react-router-dom";
 
 export default function Store() {
-  const [value, setValue] = useState(null);
+  const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [user] = useSupabaseAuth(); // Use Supabase auth for Store
+  const [user, authLoading, authError] = useSupabaseAuth();
 
   useEffect(() => {
     if (!user?.id) return;
@@ -28,7 +28,7 @@ export default function Store() {
       if (err) {
         setError(err);
       } else {
-        setValue({
+        setData({
           docs: data.map((item) => ({ id: item.id, data: () => item })),
         });
       }
@@ -55,6 +55,15 @@ export default function Store() {
     return () => subscription.unsubscribe();
   }, [user?.id]);
 
+  if (authLoading) {
+    return (
+      <>
+        <BackButton />
+        <p>Loading...</p>
+      </>
+    );
+  }
+
   if (!user?.id) {
     return (
       <>
@@ -63,11 +72,48 @@ export default function Store() {
       </>
     );
   }
+  if (loading) {
+    return (
+      <>
+        <BackButton />
+        <p>Loading...</p>
+      </>
+    );
+  }
+  if (error) {
+    return (
+      <>
+        <BackButton />
+        <p>Error: {JSON.stringify(error)}</p>
+      </>
+    );
+  }
   return (
     <>
       <BackButton />
-      <StoreBank value={value} loading={loading} error={error} />
-      <StoreTable value={value} loading={loading} error={error} />
+      <StoreBank data={data} userId={user.id} />
+      <StoreTable
+        data={data}
+        userId={user.id}
+        onAddSuccess={() => {
+          // Trigger data refetch
+          const fetchStoreData = async () => {
+            const { data: newData, error: err } = await supabase
+              .from("store")
+              .select("*")
+              .eq("user_id", user.id);
+            if (!err) {
+              setData({
+                docs: newData.map((item) => ({
+                  id: item.id,
+                  data: () => item,
+                })),
+              });
+            }
+          };
+          fetchStoreData();
+        }}
+      />
     </>
   );
 }

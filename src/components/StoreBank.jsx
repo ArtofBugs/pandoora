@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { supabase } from "../supabase/client";
 
-async function useReward(id, amount, userId) {
+async function useReward(id, amount, user_id) {
   try {
     const { data: current } = await supabase
       .from("store")
@@ -13,7 +13,7 @@ async function useReward(id, amount, userId) {
       .from("store")
       .update({ claimed: (current?.claimed || 0) - amount })
       .eq("id", id)
-      .eq("user_id", userId);
+      .eq("user_id", user_id);
   } catch (e) {
     console.error("Error using reward:", e);
   }
@@ -42,7 +42,7 @@ function StoreBankCard(props) {
               onClick={() => {
                 toUse >= 0 &&
                   toUse <= props.data.claimed &&
-                  useReward(props.id, toUse, props.userId);
+                  useReward(props.id, toUse, props.user_id);
               }}
             >
               <p>Use</p>
@@ -73,7 +73,7 @@ function StoreBankCard(props) {
 }
 
 export default function StoreBank(props) {
-  if (!props.user?.id) {
+  if (!props.userId) {
     return <p>Please sign in to use the Store.</p>;
   }
 
@@ -85,13 +85,13 @@ export default function StoreBank(props) {
         <div className="w-full inline-flex flex-wrap">
           {props.error && <p>Error: {JSON.stringify(props.error)}</p>}
           {props.loading && <p>Loading...</p>}
-          {props.value &&
-            props.value.docs.map((doc) => (
+          {props.data &&
+            props.data.docs.map((doc) => (
               <StoreBankCard
                 key={doc.id}
                 id={doc.id}
                 data={doc.data()}
-                userId={props.user.id}
+                user_id={props.user_id}
               />
             ))}
         </div>

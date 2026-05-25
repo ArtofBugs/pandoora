@@ -14,7 +14,7 @@ function App() {
     <>
       <div className="flex flex-col h-screen w-screen">
         {renderHeader ? <Header /> : null}
-        {!loading && !error && user && <Outlet />}
+        {<Outlet />}
       </div>
     </>
   );

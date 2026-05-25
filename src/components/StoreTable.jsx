@@ -1,21 +1,24 @@
 import { useState } from "react";
 import { supabase } from "../supabase/client";
 
-async function addStore(name, price, quantity, user) {
+async function addStore(name, price, quantity, user_id, onSuccess) {
   try {
     await supabase.from("store").insert({
-      user_id: user,
+      user_id: user_id,
       name: name,
       price: Number(price),
       available: Number(quantity),
       claimed: 0,
     });
+    if (onSuccess) {
+      onSuccess();
+    }
   } catch (e) {
-    console.error("Error adding document:", e);
+    console.error("Error adding item:", e);
   }
 }
 
-async function updateStore(id, field, content, type, user) {
+async function updateStore(id, field, content, type, user_id) {
   if (type === "number") {
     content = Number(content);
   }
@@ -24,21 +27,21 @@ async function updateStore(id, field, content, type, user) {
       .from("store")
       .update({ [field]: content })
       .eq("id", id)
-      .eq("user_id", user);
+      .eq("user_id", user_id);
   } catch (e) {
-    console.error("Error updating document:", e);
+    console.error("Error updating item:", e);
   }
 }
 
-async function deleteStore(id, user) {
+async function deleteStore(id, user_id) {
   try {
-    await supabase.from("store").delete().eq("id", id).eq("user_id", user);
+    await supabase.from("store").delete().eq("id", id).eq("user_id", user_id);
   } catch (e) {
-    console.error("Error deleting document:", e);
+    console.error("Error deleting item:", e);
   }
 }
 
-async function claimStore(id, amount, user) {
+async function claimStore(id, amount, user_id) {
   try {
     const { data: current } = await supabase
       .from("store")
@@ -53,7 +56,7 @@ async function claimStore(id, amount, user) {
         available: (current?.available || 0) - amount,
       })
       .eq("id", id)
-      .eq("user_id", user);
+      .eq("user_id", user_id);
   } catch (e) {
     console.error("Error claiming reward:", e);
   }
@@ -74,7 +77,13 @@ function EditableCell(props) {
       onBlur={(e) => {
         if (e.target.checkValidity?.() !== false) {
           setEditing(false);
-          updateStore(props.id, props.field, content, props.type, props.userId);
+          updateStore(
+            props.id,
+            props.field,
+            content,
+            props.type,
+            props.user_id,
+          );
         }
       }}
     >
@@ -109,7 +118,7 @@ function StoreRow(props) {
         field="name"
         type="text"
         content={props.data.name || `Untitled reward ${props.id}`}
-        userId={props.userId}
+        userId={props.user_id}
       />
       <EditableCell
         id={props.id}
@@ -118,7 +127,7 @@ function StoreRow(props) {
         field="price"
         type="number"
         content={props.data.price}
-        userId={props.userId}
+        userId={props.user_id}
       />
       <EditableCell
         id={props.id}
@@ -127,7 +136,7 @@ function StoreRow(props) {
         field="available"
         type="number"
         content={props.data.available}
-        userId={props.userId}
+        userId={props.user_id}
       />
       <td>
         <form
@@ -167,7 +176,7 @@ function StoreRow(props) {
       <th>
         <button
           className="btn btn-ghost btn-xs text-red-700"
-          onClick={() => deleteStore(props.id, props.userId)}
+          onClick={() => deleteStore(props.id, props.user_id)}
         >
           delete
         </button>
@@ -181,7 +190,7 @@ export default function StoreTable(props) {
   const [newPrice, setNewPrice] = useState(0);
   const [newQuantity, setNewQuantity] = useState(0);
 
-  if (!props.user?.id) {
+  if (!props.userId) {
     return <p>Please sign in to use the Store.</p>;
   }
 
@@ -209,13 +218,13 @@ export default function StoreTable(props) {
               <td>Loading...</td>
             </tr>
           )}
-          {props.value &&
-            props.value.docs.map((doc) => (
+          {props.data &&
+            props.data.docs.map((doc) => (
               <StoreRow
                 key={doc.id}
                 id={doc.id}
-                data={doc.data()}
-                userId={props.user.id}
+                data={doc.data}
+                userId={props.userId}
               />
             ))}
         </tbody>
@@ -259,9 +268,19 @@ export default function StoreTable(props) {
                   htmlFor="storeAdd"
                   type="submit"
                   onClick={() => {
-                    newPrice >= 0 &&
-                      newQuantity >= 0 &&
-                      addStore(newName, newPrice, newQuantity, props.user.id);
+                    newQuantity >= 0 &&
+                      addStore(
+                        newName,
+                        newPrice,
+                        newQuantity,
+                        props.user_id,
+                        () => {
+                          setNewName("");
+                          setNewPrice(0);
+                          setNewQuantity(0);
+                          props.onAddSuccess?.();
+                        },
+                      );
                   }}
                 >
                   Add
