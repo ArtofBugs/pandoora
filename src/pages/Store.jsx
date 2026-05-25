@@ -9,10 +9,14 @@ import { supabase } from "../supabase/client";
 import { useSupabaseAuth } from "../supabase/useSupabaseAuth";
 import { NavLink } from "react-router-dom";
 
+const TABLE = 1;
+const BANK = 2;
+
 export default function Store() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [view, setView] = useState(TABLE);
   const [user, authLoading, authError] = useSupabaseAuth();
 
   useEffect(() => {
@@ -88,23 +92,43 @@ export default function Store() {
   }
   return (
     <>
-      <BackButton />
-      <StoreBank data={data} userId={user.id} />
-      <StoreTable
-        data={data}
-        userId={user.id}
-        onAddSuccess={() => {
-          // Trigger data refetch
-          const fetchStoreData = async () => {
-            const { data: newData, error: err } = await supabase
-              .from("store")
-              .select("*")
-              .eq("user_id", user.id);
-            if (!err) setData(newData);
-          };
-          fetchStoreData();
-        }}
-      />
+      <div className="flex justify-between items-center p-2">
+        <BackButton />
+        <div className="join">
+          <button
+            className={`btn btn-sm join-item ${view === TABLE ? "btn-active" : ""}`}
+            onClick={() => setView(TABLE)}
+          >
+            Store
+          </button>
+          <button
+            className={`btn btn-sm join-item ${view === BANK ? "btn-active" : ""}`}
+            onClick={() => setView(BANK)}
+          >
+            Bank
+          </button>
+        </div>
+      </div>
+
+      {view === BANK ? (
+        <StoreBank data={data} userId={user.id} />
+      ) : (
+        <StoreTable
+          data={data}
+          userId={user.id}
+          onAddSuccess={() => {
+            // Trigger data refetch
+            const fetchStoreData = async () => {
+              const { data: newData, error: err } = await supabase
+                .from("store")
+                .select("*")
+                .eq("user_id", user.id);
+              if (!err) setData(newData);
+            };
+            fetchStoreData();
+          }}
+        />
+      )}
     </>
   );
 }
