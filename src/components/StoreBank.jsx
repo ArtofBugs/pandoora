@@ -20,7 +20,7 @@ async function useReward(id, amount, user_id) {
 }
 
 function StoreBankCard(props) {
-  if (!props.data.claimed) {
+  if (!props.item.claimed) {
     return null;
   }
   const [toUse, setToUse] = useState(0);
@@ -28,8 +28,8 @@ function StoreBankCard(props) {
   return (
     <div className="card bg-primary-content w-30 m-5">
       <div className="card-body">
-        <h3 className="card-title">{props.data.name}</h3>
-        <p>Available: {props.data.claimed}</p>
+        <h3 className="card-title">{props.item.name}</h3>
+        <p>Available: {props.item.claimed}</p>
 
         <div className="card-actions justify-end">
           <form
@@ -41,8 +41,8 @@ function StoreBankCard(props) {
               className="card-actions flex flex-col btn p-2 w-fit"
               onClick={() => {
                 toUse >= 0 &&
-                  toUse <= props.data.claimed &&
-                  useReward(props.id, toUse, props.user_id);
+                  toUse <= props.item.claimed &&
+                  useReward(props.item.id, toUse, props.userId);
               }}
             >
               <p>Use</p>
@@ -50,10 +50,10 @@ function StoreBankCard(props) {
                 <input
                   className="input input-bordered"
                   type="number"
-                  id={props.id}
+                  id={props.item.id}
                   step={1}
                   min={0}
-                  max={props.data.claimed}
+                  max={props.item.claimed}
                   value={toUse}
                   onClick={(e) => {
                     e.stopPropagation();
@@ -86,13 +86,8 @@ export default function StoreBank(props) {
           {props.error && <p>Error: {JSON.stringify(props.error)}</p>}
           {props.loading && <p>Loading...</p>}
           {props.data &&
-            props.data.docs.map((doc) => (
-              <StoreBankCard
-                key={doc.id}
-                id={doc.id}
-                data={doc.data()}
-                user_id={props.user_id}
-              />
+            props.data.map((item) => (
+              <StoreBankCard key={item.id} item={item} userId={props.userId} />
             ))}
         </div>
       </div>

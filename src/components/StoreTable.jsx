@@ -3,18 +3,21 @@ import { supabase } from "../supabase/client";
 
 async function addStore(name, price, quantity, user_id, onSuccess) {
   try {
-    await supabase.from("store").insert({
+    const { error, status } = await supabase.from("store").insert({
       user_id: user_id,
       name: name,
       price: Number(price),
       available: Number(quantity),
       claimed: 0,
     });
-    if (onSuccess) {
-      onSuccess();
-    }
+
+    if (error) return { error, status };
+
+    if (onSuccess) onSuccess();
+    return null;
   } catch (e) {
     console.error("Error adding item:", e);
+    return { error: e, status: 500 };
   }
 }
 
@@ -77,13 +80,7 @@ function EditableCell(props) {
       onBlur={(e) => {
         if (e.target.checkValidity?.() !== false) {
           setEditing(false);
-          updateStore(
-            props.id,
-            props.field,
-            content,
-            props.type,
-            props.user_id,
-          );
+          updateStore(props.id, props.field, content, props.type, props.userId);
         }
       }}
     >
@@ -117,8 +114,8 @@ function StoreRow(props) {
         id={props.id}
         field="name"
         type="text"
-        content={props.data.name || `Untitled reward ${props.id}`}
-        userId={props.user_id}
+        content={props.item.name || `Untitled reward ${props.id}`}
+        userId={props.userId}
       />
       <EditableCell
         id={props.id}
@@ -126,7 +123,7 @@ function StoreRow(props) {
         step={1}
         field="price"
         type="number"
-        content={props.data.price}
+        content={props.item.price}
         userId={props.user_id}
       />
       <EditableCell
@@ -135,7 +132,7 @@ function StoreRow(props) {
         step={1}
         field="available"
         type="number"
-        content={props.data.available}
+        content={props.item.available}
         userId={props.user_id}
       />
       <td>
@@ -149,7 +146,7 @@ function StoreRow(props) {
             htmlFor={props.id}
             onClick={() => {
               toClaim >= 0 &&
-                toClaim <= props.data.available &&
+                toClaim <= props.item.available &&
                 claimStore(props.id, toClaim, props.userId);
             }}
           >
@@ -160,7 +157,7 @@ function StoreRow(props) {
               id={props.id}
               step={1}
               min={0}
-              max={props.data.available}
+              max={props.item.available}
               value={toClaim}
               onClick={(e) => {
                 e.stopPropagation();
@@ -176,7 +173,7 @@ function StoreRow(props) {
       <th>
         <button
           className="btn btn-ghost btn-xs text-red-700"
-          onClick={() => deleteStore(props.id, props.user_id)}
+          onClick={() => deleteStore(props.id, props.userId)}
         >
           delete
         </button>
@@ -189,6 +186,7 @@ export default function StoreTable(props) {
   const [newName, setNewName] = useState("");
   const [newPrice, setNewPrice] = useState(0);
   const [newQuantity, setNewQuantity] = useState(0);
+  const [errorMsg, setErrorMsg] = useState("");
 
   if (!props.userId) {
     return <p>Please sign in to use the Store.</p>;
@@ -197,6 +195,17 @@ export default function StoreTable(props) {
   return (
     <div className="w-screen p-2">
       <h1 className="font-bold text-xl w-full">Store</h1>
+      {errorMsg && (
+        <div className="alert alert-error mb-4 shadow-lg flex justify-between">
+          <span>{errorMsg}</span>
+          <button
+            className="btn btn-ghost btn-xs"
+            onClick={() => setErrorMsg("")}
+          >
+            ✕
+          </button>
+        </div>
+      )}
       <table className="table w-full">
         <thead>
           <tr>
@@ -219,11 +228,11 @@ export default function StoreTable(props) {
             </tr>
           )}
           {props.data &&
-            props.data.docs.map((doc) => (
+            props.data.map((item) => (
               <StoreRow
-                key={doc.id}
-                id={doc.id}
-                data={doc.data}
+                key={item.id}
+                id={item.id}
+                item={item}
                 userId={props.userId}
               />
             ))}
@@ -267,13 +276,14 @@ export default function StoreTable(props) {
                   className="btn"
                   htmlFor="storeAdd"
                   type="submit"
-                  onClick={() => {
-                    newQuantity >= 0 &&
-                      addStore(
+                  onClick={async () => {
+                    setErrorMsg("");
+                    if (newQuantity >= 0) {
+                      const res = await addStore(
                         newName,
                         newPrice,
                         newQuantity,
-                        props.user_id,
+                        props.userId,
                         () => {
                           setNewName("");
                           setNewPrice(0);
@@ -281,6 +291,15 @@ export default function StoreTable(props) {
                           props.onAddSuccess?.();
                         },
                       );
+
+                      if (res?.status === 409) {
+                        setErrorMsg(
+                          "Error: This item already exists in your store.",
+                        );
+                      } else if (res?.error) {
+                        setErrorMsg("Error: Failed to add item to the store.");
+                      }
+                    }
                   }}
                 >
                   Add

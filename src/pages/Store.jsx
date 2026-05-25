@@ -28,9 +28,7 @@ export default function Store() {
       if (err) {
         setError(err);
       } else {
-        setData({
-          docs: data.map((item) => ({ id: item.id, data: () => item })),
-        });
+        setData(data);
       }
       setLoading(false);
     };
@@ -102,14 +100,7 @@ export default function Store() {
               .from("store")
               .select("*")
               .eq("user_id", user.id);
-            if (!err) {
-              setData({
-                docs: newData.map((item) => ({
-                  id: item.id,
-                  data: () => item,
-                })),
-              });
-            }
+            if (!err) setData(newData);
           };
           fetchStoreData();
         }}
