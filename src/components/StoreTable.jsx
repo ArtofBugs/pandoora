@@ -194,7 +194,7 @@ export default function StoreTable(props) {
 
   return (
     <div className="w-screen p-2">
-      <h1 className="font-bold text-xl w-full">Store</h1>
+      <h1 className="font-bold text-xl w-full">Available Rewards</h1>
       {errorMsg && (
         <div className="alert alert-error mb-4 shadow-lg flex justify-between">
           <span>{errorMsg}</span>

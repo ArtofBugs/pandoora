@@ -99,13 +99,13 @@ export default function Store() {
             className={`btn btn-sm join-item ${view === TABLE ? "btn-active" : ""}`}
             onClick={() => setView(TABLE)}
           >
-            Store
+            Available
           </button>
           <button
             className={`btn btn-sm join-item ${view === BANK ? "btn-active" : ""}`}
             onClick={() => setView(BANK)}
           >
-            Bank
+            Claimed
           </button>
         </div>
       </div>
