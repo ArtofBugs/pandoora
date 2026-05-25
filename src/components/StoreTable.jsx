@@ -36,15 +36,16 @@ async function updateStore(id, field, content, type, user_id) {
   }
 }
 
-async function deleteStore(id, user_id) {
+async function deleteStore(id, user_id, onSuccess) {
   try {
     await supabase.from("store").delete().eq("id", id).eq("user_id", user_id);
+    if (onSuccess) onSuccess();
   } catch (e) {
     console.error("Error deleting item:", e);
   }
 }
 
-async function claimStore(id, amount, user_id) {
+async function claimStore(id, amount, user_id, onSuccess) {
   try {
     const { data: current } = await supabase
       .from("store")
@@ -55,11 +56,13 @@ async function claimStore(id, amount, user_id) {
     await supabase
       .from("store")
       .update({
-        claimed: (current?.claimed || 0) + amount,
-        available: (current?.available || 0) - amount,
+        claimed: (current?.claimed || 0) + Number(amount),
+        available: (current?.available || 0) - Number(amount),
       })
       .eq("id", id)
       .eq("user_id", user_id);
+
+    if (onSuccess) onSuccess();
   } catch (e) {
     console.error("Error claiming reward:", e);
   }
@@ -147,7 +150,12 @@ function StoreRow(props) {
             onClick={() => {
               toClaim >= 0 &&
                 toClaim <= props.item.available &&
-                claimStore(props.id, toClaim, props.userId);
+                claimStore(
+                  props.id,
+                  toClaim,
+                  props.userId,
+                  props.onClaimSuccess,
+                );
             }}
           >
             Claim
@@ -173,7 +181,9 @@ function StoreRow(props) {
       <th>
         <button
           className="btn btn-ghost btn-xs text-red-700"
-          onClick={() => deleteStore(props.id, props.userId)}
+          onClick={() =>
+            deleteStore(props.id, props.userId, props.onDeleteSuccess)
+          }
         >
           delete
         </button>
@@ -234,6 +244,8 @@ export default function StoreTable(props) {
                 id={item.id}
                 item={item}
                 userId={props.userId}
+                onDeleteSuccess={props.onDeleteSuccess}
+                onClaimSuccess={props.onClaimSuccess}
               />
             ))}
         </tbody>

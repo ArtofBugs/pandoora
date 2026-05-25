@@ -111,13 +111,45 @@ export default function Store() {
       </div>
 
       {view === BANK ? (
-        <StoreBank data={data} userId={user.id} />
+        <StoreBank
+          data={data}
+          userId={user.id}
+          onUseSuccess={() => {
+            const fetchStoreData = async () => {
+              const { data: newData, error: err } = await supabase
+                .from("store")
+                .select("*")
+                .eq("user_id", user.id);
+              if (!err) setData(newData);
+            };
+            fetchStoreData();
+          }}
+        />
       ) : (
         <StoreTable
           data={data}
           userId={user.id}
           onAddSuccess={() => {
-            // Trigger data refetch
+            const fetchStoreData = async () => {
+              const { data: newData, error: err } = await supabase
+                .from("store")
+                .select("*")
+                .eq("user_id", user.id);
+              if (!err) setData(newData);
+            };
+            fetchStoreData();
+          }}
+          onDeleteSuccess={() => {
+            const fetchStoreData = async () => {
+              const { data: newData, error: err } = await supabase
+                .from("store")
+                .select("*")
+                .eq("user_id", user.id);
+              if (!err) setData(newData);
+            };
+            fetchStoreData();
+          }}
+          onClaimSuccess={() => {
             const fetchStoreData = async () => {
               const { data: newData, error: err } = await supabase
                 .from("store")
