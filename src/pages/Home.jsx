@@ -147,11 +147,11 @@ function Menu() {
               <FontAwesomeIcon icon={faCalendar} />
             </NavLink>
           </li>
-          <li>
+          {/* <li>
             <NavLink to="/settings">
               <FontAwesomeIcon icon={faCog} />
             </NavLink>
-          </li>
+          </li> */}
         </>
       )}
     </ul>
@@ -211,7 +211,9 @@ export default function Home() {
 
   return (
     <div className="relative h-screen flex flex-col">
-      <Menu />
+      <div className="m-2">
+        <Menu />
+      </div>
       <div className="hero justify-center h-full">
         <div className="hero-content flex-col text-center space-y-5 justify-center w-full">
           <h1 className="text-5xl">Focus:</h1>
