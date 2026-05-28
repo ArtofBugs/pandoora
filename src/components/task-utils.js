@@ -30,7 +30,7 @@ export async function createTaskNew(userId, list, content, repeating) {
   }
 }
 
-export async function updateTaskNew(userId, list, task, content, repeating) {
+export async function updateTaskNew(userId, task, content, repeating) {
   if (repeating) {
     try {
       await supabase
@@ -54,7 +54,7 @@ export async function updateTaskNew(userId, list, task, content, repeating) {
   }
 }
 
-export async function deleteTaskNew(userId, list, task, repeating) {
+export async function deleteTaskNew(userId, task, repeating) {
   if (repeating) {
     try {
       await supabase
@@ -79,8 +79,10 @@ export const NOTES_PLACEHOLDER = 'Notes'
 export const TASK_FIELDS = {
   title: '',
   notes: '',
-  target_time: '',
-  actual_time: '',
+  time: {
+    'Target time': '',
+    'Actual time': '',
+  },
   // repeats: {
   //   Su: false,
   //   M: false,

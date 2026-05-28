@@ -18,6 +18,7 @@ import { useSupabaseAuth } from "../supabase/useSupabaseAuth";
 import { supabase } from "../supabase/client";
 
 export function TaskNew({ data, initial, id, list, repeating }) {
+  const [user] = useSupabaseAuth();
   const [editing, setEditing] = useState(initial ?? false);
   const [content, setContent] = useState(data ?? {});
   const [collapseOpen, setCollapseOpen] = useState(false);
@@ -42,7 +43,12 @@ export function TaskNew({ data, initial, id, list, repeating }) {
               e.stopPropagation();
             }}
             onChange={() =>
-              updateTaskNew(list, id, { completed: !data.completed }, repeating)
+              updateTaskNew(
+                user?.id,
+                id,
+                { completed: !data.completed },
+                repeating,
+              )
             }
           />
           {editing ? (
@@ -75,11 +81,11 @@ export function TaskNew({ data, initial, id, list, repeating }) {
               />
             </fieldset>
             <fieldset className="fieldset">
-              <RepeatArea
+              {/* <RepeatArea
                 content={content}
                 setContent={setContent}
                 editing={editing}
-              />
+              /> */}
             </fieldset>
             <fieldset className="flex flex-row gap-2 justify-start align-middle">
               <EarnsLabel />
@@ -102,11 +108,11 @@ export function TaskNew({ data, initial, id, list, repeating }) {
           <div>
             {editing ? (
               <SubmissionContainer>
-                <OverwriteDropdown setContent={setContent} />
+                {/* <OverwriteDropdown setContent={setContent} /> */}
                 <SaveButton
                   onSave={(e) => {
                     e.preventDefault();
-                    updateTaskNew(list, id, content, repeating);
+                    updateTaskNew(user?.id, id, content, repeating);
                     setEditing(false);
                   }}
                 />
@@ -118,7 +124,7 @@ export function TaskNew({ data, initial, id, list, repeating }) {
                 />
                 <DeleteButton
                   onDelete={() => {
-                    deleteTaskNew(list, id, repeating);
+                    deleteTaskNew(user?.id, id, repeating);
                   }}
                 />
               </SubmissionContainer>
@@ -159,13 +165,13 @@ export function NewTask({ userId, list, setEditing, repeating }) {
                 editing={true}
               />
             </fieldset>
-            <fieldset className="fieldset">
+            {/* <fieldset className="fieldset">
               <RepeatArea
                 content={content}
                 setContent={setContent}
                 editing={true}
               />
-            </fieldset>
+            </fieldset> */}
             <fieldset className="flex flex-row gap-2 justify-start align-middle">
               <EarnsLabel />
               <EarnsInput content={content} setContent={setContent} />
@@ -178,7 +184,7 @@ export function NewTask({ userId, list, setEditing, repeating }) {
         <div>
           <div>
             <SubmissionContainer>
-              <OverwriteDropdown setContent={setContent} />
+              {/* <OverwriteDropdown setContent={setContent} /> */}
               <SaveButton
                 onSave={(e) => {
                   e.preventDefault();
@@ -346,51 +352,51 @@ function EarnsInput({ content, setContent }) {
   );
 }
 
-function RepeatArea({ content, setContent, editing }) {
-  const DAYS_ORDER = ["Su", "M", "Tu", "W", "Th", "F", "Sa"];
-  return (
-    <div>
-      <RepeatLabel label="Days " />
-      {DAYS_ORDER.map((day, i) => (
-        <RepeatButton
-          key={i}
-          text={day}
-          editing={editing}
-          repeat={content.repeats?.[day] ?? false}
-          toggleRepeat={() =>
-            setContent({
-              ...content,
-              repeats: { ...content.repeats, [day]: !content.repeats?.[day] },
-            })
-          }
-        />
-      ))}
-    </div>
-  );
-}
+// function RepeatArea({ content, setContent, editing }) {
+//   const DAYS_ORDER = ["Su", "M", "Tu", "W", "Th", "F", "Sa"];
+//   return (
+//     <div>
+//       <RepeatLabel label="Days " />
+//       {DAYS_ORDER.map((day, i) => (
+//         <RepeatButton
+//           key={i}
+//           text={day}
+//           editing={editing}
+//           repeat={content.repeats?.[day] ?? false}
+//           toggleRepeat={() =>
+//             setContent({
+//               ...content,
+//               repeats: { ...content.repeats, [day]: !content.repeats?.[day] },
+//             })
+//           }
+//         />
+//       ))}
+//     </div>
+//   );
+// }
 
-function RepeatLabel({ label }) {
-  return <div className="flex-1 h-min">{label ?? ""}</div>;
-}
+// function RepeatLabel({ label }) {
+//   return <div className="flex-1 h-min">{label ?? ""}</div>;
+// }
 
-function RepeatButton({ text, editing, repeat, toggleRepeat }) {
-  return (
-    <button
-      className={
-        "btn rounded-full" +
-        (repeat ? " bg-accent" : "") +
-        (editing ? " text-primary" : " text-neutral")
-      }
-      disabled={!editing}
-      onClick={(e) => {
-        e.preventDefault();
-        toggleRepeat();
-      }}
-    >
-      {text}
-    </button>
-  );
-}
+// function RepeatButton({ text, editing, repeat, toggleRepeat }) {
+//   return (
+//     <button
+//       className={
+//         "btn rounded-full" +
+//         (repeat ? " bg-accent" : "") +
+//         (editing ? " text-primary" : " text-neutral")
+//       }
+//       disabled={!editing}
+//       onClick={(e) => {
+//         e.preventDefault();
+//         toggleRepeat();
+//       }}
+//     >
+//       {text}
+//     </button>
+//   );
+// }
 
 function SubmissionContainer({ children }) {
   return <div className="flex justify-end gap-4 h-max">{children}</div>;

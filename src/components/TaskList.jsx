@@ -246,11 +246,11 @@ function TaskRegion({ list }) {
       {error && <p>Error: {JSON.stringify(error)}</p>}
       {loading && <p>...</p>}
       {tasks &&
-        tasks.map((task) => (
+        tasks.map(({ lists, ...taskData }) => (
           <TaskNew
-            key={task.id}
-            id={task.id}
-            data={task || {}}
+            key={taskData.id}
+            id={taskData.id}
+            data={taskData}
             initial={false}
             list={list}
             repeating={false}
