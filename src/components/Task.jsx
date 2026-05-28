@@ -78,7 +78,7 @@ export function TaskNew({ data, initial, id, list }) {
       </div>
       <form className="collapse-content text-sm flex flex-col gap-10">
         <div className="flex flex-row gap-4">
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col grow gap-4">
             <fieldset className="fieldset flex-1">
               <TimeArea
                 content={content}
@@ -270,7 +270,7 @@ function TimeArea({ editing, content, setContent }) {
 }
 
 function TimeDisplay({ content }) {
-  if (!content.time) {
+  if (!content.time || Object.keys(content.time).length === 0) {
     return <div />;
   }
   return (
@@ -290,14 +290,17 @@ function TimeDisplay({ content }) {
 }
 
 function TimeInput({ content, setContent }) {
-  if (!content.time) {
-    return <div />;
-  }
+  // Provide default fields if content.time is missing or empty
+  const timeData =
+    content.time && Object.keys(content.time).length > 0
+      ? content.time
+      : { Target: "", Actual: "" };
+
   return (
     <>
       <li className="flex flex-row items-end gap-1">
         <ul className="flex-1">
-          {Object.entries(content.time).map(([engagement, hour], i) => (
+          {Object.entries(timeData).map(([engagement, hour], i) => (
             <li className="list-row flex gap-1 items-end" key={i}>
               <HoursLabel label={engagement} />
               <HoursInput
@@ -305,7 +308,7 @@ function TimeInput({ content, setContent }) {
                 setHour={(e) =>
                   setContent({
                     ...content,
-                    time: { ...content.time, [engagement]: e.target.value },
+                    time: { ...timeData, [engagement]: e.target.value },
                   })
                 }
               />
@@ -369,7 +372,9 @@ function EarnsDisplay({ rewardId }) {
   }, [rewardId, user?.id]);
 
   return (
-    <h1 className={"w-full h-full"}>{rewardName || (rewardId ? "..." : "")}</h1>
+    <h1 className={"w-full h-full"}>
+      {rewardName || (rewardId ? "..." : "N/A")}
+    </h1>
   );
 }
 
