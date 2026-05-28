@@ -77,8 +77,8 @@ export function LogEntry({ data, initial, id }) {
           {editing ? (
             <SubmissionContainer>
               <SaveButton
-                onSave={() => {
-                  updateLogEntry(id, content);
+                onSave={async () => {
+                  await updateLogEntry(id, content);
                   setEditing(false);
                 }}
               />
@@ -89,8 +89,8 @@ export function LogEntry({ data, initial, id }) {
                 }}
               />
               <DeleteButton
-                onDelete={() => {
-                  deleteLogEntry(id);
+                onDelete={async () => {
+                  await deleteLogEntry(id);
                 }}
               />
             </SubmissionContainer>
@@ -141,9 +141,9 @@ export function NewLogEntry({ setEditing }) {
         <div>
           <SubmissionContainer>
             <SaveButton
-              onSave={(e) => {
+              onSave={async (e) => {
                 e.preventDefault();
-                createLogEntry(content);
+                await createLogEntry(content);
                 setEditing(false);
               }}
             />

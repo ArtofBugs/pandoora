@@ -1,41 +1,82 @@
-import {
-  doc,
-  collection,
-  addDoc,
-  updateDoc,
-  deleteDoc,
-} from 'firebase/firestore'
+import { supabase } from '../supabase/client'
 
-import getDb, { auth } from '../firebase/initialize'
+export async function getLogEntries(userId) {
+  if (!userId) {
+    return { data: [], error: null }
+  }
+
+  const { data, error } = await supabase.from('log').select('*').eq('user_id', userId)
+
+  return { data, error }
+}
 
 export async function createLogEntry(content) {
-  try {
-    await addDoc(
-      collection(getDb(), 'users', auth.currentUser?.uid, 'log'),
-      content
-    )
-  } catch (e) {
-    console.error('Error adding document:', e)
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser()
+
+  if (authError || !user) {
+    console.error('Supabase auth error:', authError)
+    return null
   }
+
+  const { data, error } = await supabase
+    .from('log')
+    .insert([{ ...content, user_id: user.id }])
+
+  if (error) {
+    console.error('Error adding log entry:', error)
+    return null
+  }
+
+  return data?.[0] ?? null
 }
 
 export async function updateLogEntry(id, content) {
-  try {
-    await updateDoc(
-      doc(getDb(), 'users', auth.currentUser?.uid, 'log', id),
-      content
-    )
-  } catch (e) {
-    console.error('Error adding document:', e)
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser()
+
+  if (authError || !user) {
+    console.error('Supabase auth error:', authError)
+    return null
   }
+
+  const { data, error } = await supabase
+    .from('log')
+    .update(content)
+    .eq('id', id)
+    .eq('user_id', user.id)
+
+  if (error) {
+    console.error('Error updating log entry:', error)
+    return null
+  }
+
+  return data?.[0] ?? null
 }
 
 export async function deleteLogEntry(id) {
-  try {
-    await deleteDoc(doc(getDb(), 'users', auth.currentUser?.uid, 'log', id))
-  } catch (e) {
-    console.error('Error deleting document:', e)
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser()
+
+  if (authError || !user) {
+    console.error('Supabase auth error:', authError)
+    return null
   }
+
+  const { error } = await supabase.from('log').delete().eq('id', id).eq('user_id', user.id)
+
+  if (error) {
+    console.error('Error deleting log entry:', error)
+    return null
+  }
+
+  return true
 }
 
 export const TOTAL_HOURS = 24

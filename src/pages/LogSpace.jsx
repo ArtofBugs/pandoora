@@ -1,20 +1,78 @@
+import { useEffect, useState } from "react";
 import { LogEntry, NewLogEntry } from "../components/LogEntry";
 import AddEntryButton from "../components/Common";
-
-import { collection } from "firebase/firestore";
-import { useCollection } from "react-firebase-hooks/firestore";
-
-import getDb, { auth } from "../firebase/initialize";
-import { useState } from "react";
-import { useAuthState } from "react-firebase-hooks/auth";
+import { supabase } from "../supabase/client";
+import { useSupabaseAuth } from "../supabase/useSupabaseAuth";
+import { getLogEntries } from "../components/log-utils";
 
 export default function LogSpace() {
-  const [user, _, __] = useAuthState(auth);
-  // TODO: Would a race happen if auth state loaded too slow?
-  const [value, loading, error] = useCollection(
-    collection(getDb(), "users", user?.uid, "log")
-  );
+  const [user, authLoading, authError] = useSupabaseAuth();
+  const [entries, setEntries] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [editing, setEditing] = useState(false);
+
+  useEffect(() => {
+    if (!user) {
+      setEntries([]);
+      setLoading(false);
+      return;
+    }
+
+    let mounted = true;
+
+    async function loadEntries() {
+      setLoading(true);
+      const { data, error } = await getLogEntries(user.id);
+
+      if (!mounted) return;
+
+      if (error) {
+        setError(error);
+      } else {
+        setEntries(data || []);
+      }
+
+      setLoading(false);
+    }
+
+    loadEntries();
+
+    return () => {
+      mounted = false;
+    };
+  }, [user]);
+
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel(`log-user-${user.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "log",
+          filter: `user_id=eq.${user.id}`,
+        },
+        async () => {
+          const { data, error } = await getLogEntries(user.id);
+          if (!error) {
+            setEntries(data || []);
+          } else {
+            setError(error);
+          }
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
+
+  const activeError = authError || error;
 
   return (
     <div className="flex grow gap-4 flex-col pl-10 pr-10">
@@ -23,19 +81,11 @@ export default function LogSpace() {
       ) : (
         <AddEntryButton onClick={() => setEditing(true)} />
       )}
-      {error && <p>Error: {JSON.stringify(error)}</p>}
-      {loading && <p>...</p>}
-      {value &&
-        value.docs.map((doc) => {
-          return (
-            <LogEntry
-              key={doc.id}
-              id={doc.id}
-              data={doc.data() || {}}
-              initial={false}
-            />
-          );
-        })}
+      {activeError && <p>Error: {JSON.stringify(activeError)}</p>}
+      {(authLoading || loading) && <p>...</p>}
+      {entries.map((entry) => (
+        <LogEntry key={entry.id} id={entry.id} data={entry} initial={false} />
+      ))}
     </div>
   );
 }
