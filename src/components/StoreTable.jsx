@@ -21,7 +21,7 @@ async function addStore(name, price, quantity, user_id, onSuccess) {
   }
 }
 
-async function updateStore(id, field, content, type, user_id) {
+async function updateStore(id, field, content, type, user_id, onSuccess) {
   if (type === "number") {
     content = Number(content);
   }
@@ -31,6 +31,7 @@ async function updateStore(id, field, content, type, user_id) {
       .update({ [field]: content })
       .eq("id", id)
       .eq("user_id", user_id);
+    if (onSuccess) onSuccess();
   } catch (e) {
     console.error("Error updating item:", e);
   }

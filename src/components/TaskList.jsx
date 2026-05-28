@@ -67,20 +67,20 @@ export function TaskListNew({ data, initial, id, userId }) {
         {editing ? (
           <SubmissionContainer>
             <SaveButton
-              onSave={() => {
-                updateTaskList(userId, id, content);
+              onSave={async () => {
+                await updateTaskList(userId, id, content);
                 setEditing(false);
               }}
             />
             <CancelButton
-              onCancel={() => {
+              onCancel={async () => {
                 setContent(data);
                 setEditing(false);
               }}
             />
             <DeleteButton
-              onDelete={() => {
-                deleteTaskList(userId, id);
+              onDelete={async () => {
+                await deleteTaskList(userId, id);
               }}
             />
           </SubmissionContainer>
@@ -186,11 +186,10 @@ function TaskRegion({ list }) {
     const fetchTasks = async () => {
       setLoading(true);
       const { data, error: err } = await supabase
-        .from("tasks")
-        .select("*, lists ( id )")
-        .eq("user_id", user.id)
-        .eq("lists.id", list)
-        .order("id", { ascending: true });
+        .from("list_task_relationships")
+        .select("tasks(*)")
+        .eq("list_id", list)
+        .order("task_id", { ascending: true });
 
       if (!active) {
         return;
@@ -199,36 +198,32 @@ function TaskRegion({ list }) {
       if (err) {
         setError(err);
       } else {
-        setTasks(data ?? []);
+        console.log("Fetched tasks:", data);
+        const taskList = data?.map((item) => item.tasks).filter(Boolean) ?? [];
+        setTasks(taskList);
       }
       setLoading(false);
     };
 
     fetchTasks();
 
-    const relationshipSubscription = supabase
-      .channel(`list_task_relationships:list=eq.${list}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "list_task_relationships",
-          filter: `list=eq.${list}`,
-        },
-        () => fetchTasks(),
-      )
-      .subscribe();
-
     const taskSubscription = supabase
-      .channel(`tasks:user_id=eq.${user.id}`)
+      .channel(`tasks-list-${list}`)
       .on(
         "postgres_changes",
         {
           event: "*",
           schema: "public",
           table: "tasks",
-          filter: `user_id=eq.${user.id}`,
+        },
+        () => fetchTasks(),
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "list_task_relationships",
         },
         () => fetchTasks(),
       )
@@ -236,7 +231,7 @@ function TaskRegion({ list }) {
 
     return () => {
       active = false;
-      relationshipSubscription.unsubscribe();
+      // relationshipSubscription.unsubscribe();
       taskSubscription.unsubscribe();
     };
   }, [user?.id, list]);
@@ -246,27 +241,13 @@ function TaskRegion({ list }) {
       {error && <p>Error: {JSON.stringify(error)}</p>}
       {loading && <p>...</p>}
       {tasks &&
-        tasks.map(({ lists, ...taskData }) => (
+        tasks.map((taskData) => (
           <TaskNew
             key={taskData.id}
             id={taskData.id}
             data={taskData}
             initial={false}
             list={list}
-            repeating={false}
-            onDeleteSuccess={() => {
-              const fetchTasks = async () => {
-                setLoading(true);
-                const { data, error: err } = await supabase
-                  .from("tasks")
-                  .select("*, lists ( id )")
-                  .eq("user_id", user.id)
-                  .eq("lists.id", list)
-                  .order("id", { ascending: true });
-                if (!err) setTasks(data ?? []);
-              };
-              fetchTasks();
-            }}
           />
         ))}
     </div>
@@ -280,12 +261,7 @@ function TaskArea({ userId, list }) {
     <div className="border flex grow gap-4 flex-col p-5">
       <TaskRegion list={list} />
       {editing ? (
-        <NewTask
-          userId={userId}
-          list={list}
-          setEditing={setEditing}
-          repeating={false}
-        />
+        <NewTask userId={userId} list={list} setEditing={setEditing} />
       ) : (
         <AddEntryButton onClick={() => setEditing(true)} />
       )}

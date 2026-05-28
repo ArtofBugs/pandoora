@@ -43,7 +43,6 @@ export default function TasksSpace() {
           event: "*",
           schema: "public",
           table: "lists",
-          filter: `user_id=eq.${user.id}`,
         },
         () => fetchLists(),
       )
@@ -82,27 +81,26 @@ export default function TasksSpace() {
               userId={user.id}
               data={list || {}}
               initial={false}
-              repeating={true}
             />
           ))}
       </div>
       <div className="flex justify-between m-10">
-        <RepeatsLink />
+        {/* <RepeatsLink /> */}
         <StoreLink />
       </div>
     </div>
   );
 }
 
-function RepeatsLink() {
-  return (
-    <NavLink to="/repeats">
-      <button className="btn border-gray-200 text-gray-800 font-normal">
-        Switch to repeating tasks view
-      </button>
-    </NavLink>
-  );
-}
+// function RepeatsLink() {
+//   return (
+//     <NavLink to="/repeats">
+//       <button className="btn border-gray-200 text-gray-800 font-normal">
+//         Switch to repeating tasks view
+//       </button>
+//     </NavLink>
+//   );
+// }
 
 function StoreLink() {
   return (

@@ -17,14 +17,7 @@ import { SaveButton, CancelButton, EditButton, DeleteButton } from "./Common";
 import { useSupabaseAuth } from "../supabase/useSupabaseAuth";
 import { supabase } from "../supabase/client";
 
-export function TaskNew({
-  data,
-  initial,
-  id,
-  list,
-  repeating,
-  onDeleteSuccess,
-}) {
+export function TaskNew({ data, initial, id, list }) {
   const [user] = useSupabaseAuth();
   const [editing, setEditing] = useState(initial ?? false);
   const [content, setContent] = useState(data ?? {});
@@ -49,14 +42,9 @@ export function TaskNew({
             onClick={(e) => {
               e.stopPropagation();
             }}
-            onChange={() =>
-              updateTaskNew(
-                user?.id,
-                id,
-                { completed: !data.completed },
-                repeating,
-              )
-            }
+            onChange={() => {
+              updateTaskNew(user?.id, id, { completed: !data.completed });
+            }}
           />
           {editing ? (
             <TitleInput content={content} setContent={setContent} />
@@ -119,7 +107,7 @@ export function TaskNew({
                 <SaveButton
                   onSave={(e) => {
                     e.preventDefault();
-                    updateTaskNew(user?.id, id, content, repeating);
+                    updateTaskNew(user?.id, id, content);
                     setEditing(false);
                   }}
                 />
@@ -131,9 +119,8 @@ export function TaskNew({
                 />
                 <DeleteButton
                   onDelete={async () => {
-                    await deleteTaskNew(user?.id, id, repeating);
+                    await deleteTaskNew(user?.id, id);
                     setEditing(false);
-                    onDeleteSuccess?.();
                   }}
                 />
               </SubmissionContainer>
@@ -147,7 +134,7 @@ export function TaskNew({
   );
 }
 
-export function NewTask({ userId, list, setEditing, repeating }) {
+export function NewTask({ userId, list, setEditing }) {
   const [content, setContent] = useState(TASK_FIELDS);
   const [collapseOpen, setCollapseOpen] = useState(true);
 
@@ -197,7 +184,7 @@ export function NewTask({ userId, list, setEditing, repeating }) {
               <SaveButton
                 onSave={(e) => {
                   e.preventDefault();
-                  createTaskNew(userId, list, content, repeating);
+                  createTaskNew(userId, list, content);
                   setEditing(false);
                 }}
               />
