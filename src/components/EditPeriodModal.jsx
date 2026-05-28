@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { updatePeriod } from "./calendar-utils";
+import { updatePeriod, deletePeriod } from "./calendar-utils";
+import { DeleteButton } from "./Common";
 
 export function EditPeriodModal({
   isOpen,
@@ -52,10 +53,26 @@ export function EditPeriodModal({
       type,
     );
 
-    setLoading(false);
+    setLoading(false); // Set loading to false before checking for error
 
     if (result && result.error) {
       setError(result.error.message || "Error updating period.");
+    } else {
+      onPeriodUpdated();
+      onClose();
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!initialPeriod || !initialPeriod.id) {
+      setError("Cannot delete a period without an ID.");
+      return;
+    }
+    setLoading(true);
+    const result = await deletePeriod(initialPeriod.id);
+    setLoading(false);
+    if (result && result.error) {
+      setError(result.error.message || "Error deleting period.");
     } else {
       onPeriodUpdated();
       onClose();
@@ -141,21 +158,25 @@ export function EditPeriodModal({
           {error && <p className="text-red-500 text-xs italic mb-4">{error}</p>}
 
           <div className="flex items-center justify-between">
-            <button
-              type="submit"
-              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-              disabled={loading}
-            >
-              {loading ? "Saving..." : "Save Changes"}
-            </button>
-            <button
-              type="button"
-              className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-              onClick={onClose}
-              disabled={loading}
-            >
-              Cancel
-            </button>
+            <DeleteButton onDelete={handleDelete} />
+
+            <div className="flex gap-4">
+              <button
+                type="submit"
+                className="bg-cyan-400 hover:bg-cyan-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                disabled={loading}
+              >
+                {loading ? "Saving..." : "Save Changes"}
+              </button>{" "}
+              <button
+                type="button"
+                className="bg-gray-400 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                onClick={onClose}
+                disabled={loading}
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         </form>
       </div>

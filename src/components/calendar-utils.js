@@ -49,8 +49,7 @@ export async function updatePeriod(id, start_time, end_time, title, type) {
   } = await supabase.auth.getUser()
 
   if (authError || !user) {
-    console.error('Supabase auth error:', authError)
-    return null
+    return { data: null, error: authError }
   }
 
   const updateData = {
@@ -73,10 +72,10 @@ export async function updatePeriod(id, start_time, end_time, title, type) {
 
   if (error) {
     console.error('Error updating calendar period:', error)
-    return null
+    return { data: null, error }
   }
 
-  return data?.[0] ?? null
+  return { data: data?.[0] ?? null, error: null }
 }
 
 export async function deletePeriod(id) {
@@ -86,8 +85,7 @@ export async function deletePeriod(id) {
   } = await supabase.auth.getUser()
 
   if (authError || !user) {
-    console.error('Supabase auth error:', authError)
-    return null
+    return { data: null, error: authError }
   }
 
   const { error } = await supabase
@@ -97,11 +95,11 @@ export async function deletePeriod(id) {
     .eq('user_id', user.id)
 
   if (error) {
-    console.error('Error deleting calendar period:', error)
+    console.error('Error updating calendar period:', error)
     return null
   }
 
-  return true
+  return { data: true, error: null }
 }
 
 export const TOTAL_HOURS = 24
