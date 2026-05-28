@@ -1,9 +1,6 @@
-import { useState } from "react";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPlusCircle } from "@fortawesome/free-solid-svg-icons";
-import Draggable from "react-draggable";
+import { useEffect, useState } from "react";
 
-import { TaskNew, NewTask, Task } from "./Task";
+import { TaskNew, NewTask } from "./Task";
 import AddEntryButton, {
   SaveButton,
   CancelButton,
@@ -17,29 +14,13 @@ import {
   NOTES_PLACEHOLDER,
 } from "./tasklist-utils";
 
-import {
-  collection,
-  doc,
-  addDoc,
-  updateDoc,
-  arrayUnion,
-} from "firebase/firestore";
-import { useCollection } from "react-firebase-hooks/firestore";
-import { useAuthState } from "react-firebase-hooks/auth";
+import { useSupabaseAuth } from "../supabase/useSupabaseAuth";
+import { supabase } from "../supabase/client";
 
-import getDb, { auth } from "../firebase/initialize";
-
-export function TaskListNew({ data, initial, id }) {
-  const [editing, setEditing] = useState(initial ?? false); // set false if undefined
+export function TaskListNew({ data, initial, id, userId }) {
+  const [editing, setEditing] = useState(initial ?? false);
   const [content, setContent] = useState(data ?? {});
   const [collapseOpen, setCollapseOpen] = useState(false);
-  console.log(editing);
-  console.log("content");
-  console.log(content);
-  console.log("data");
-  console.log(data);
-  console.log("list id");
-  console.log(id);
 
   return (
     <div
@@ -48,12 +29,10 @@ export function TaskListNew({ data, initial, id }) {
         (collapseOpen ? " collapse-open" : "")
       }
     >
-      {/* Header */}
       <div
         className="collapse-title font-semibold"
         onClick={() => setCollapseOpen(!collapseOpen)}
       >
-        {/* Title */}
         {editing ? (
           <TitleInput content={content} setContent={setContent} />
         ) : (
@@ -73,9 +52,7 @@ export function TaskListNew({ data, initial, id }) {
         )}
       </div>
       <div className="collapse-content text-sm flex flex-col gap-10">
-        {/* Content */}
         <div className="flex flex-col gap-1">
-          {/* Notes */}
           <fieldset className="fieldset flex-1 flex">
             {editing ? (
               <NotesInput content={content} setContent={setContent} />
@@ -83,17 +60,15 @@ export function TaskListNew({ data, initial, id }) {
               <NotesDisplay notes={data.notes} />
             )}
           </fieldset>
-          {/* Tasks */}
           <div className="fieldset flex-1">
             <TaskArea list={id} />
           </div>
         </div>
-        {/* Buttons */}
         {editing ? (
           <SubmissionContainer>
             <SaveButton
               onSave={() => {
-                updateTaskList(id, content);
+                updateTaskList(userId, id, content);
                 setEditing(false);
               }}
             />
@@ -105,7 +80,7 @@ export function TaskListNew({ data, initial, id }) {
             />
             <DeleteButton
               onDelete={() => {
-                deleteTaskList(id);
+                deleteTaskList(userId, id);
               }}
             />
           </SubmissionContainer>
@@ -117,8 +92,8 @@ export function TaskListNew({ data, initial, id }) {
   );
 }
 
-export function NewTaskList({ setEditing }) {
-  const [content, setContent] = useState({ title: "", notes: "", tasks: {} });
+export function NewTaskList({ userId, setEditing }) {
+  const [content, setContent] = useState({ title: "", notes: "" });
   const [collapseOpen, setCollapseOpen] = useState(true);
 
   return (
@@ -128,35 +103,30 @@ export function NewTaskList({ setEditing }) {
         (collapseOpen ? " collapse-open" : "")
       }
     >
-      {/* Header */}
       <div
         className="collapse-title font-semibold"
         onClick={() => setCollapseOpen(!collapseOpen)}
       >
-        {/* Title */}
         <TitleInput content={content} setContent={setContent} />
       </div>
-      {/* Content */}
       <div className="collapse-content text-sm flex flex-col gap-4 h-max">
         <div className="flex flex-col gap-10">
-          {/* Notes */}
           <fieldset className="fieldset flex-1 flex">
             <NotesInput content={content} setContent={setContent} />
           </fieldset>
         </div>
-        {/* Buttons */}
         <div>
           <SubmissionContainer>
             <SaveButton
               onSave={(e) => {
                 e.preventDefault();
-                createTaskList(content);
+                createTaskList(userId, content);
                 setEditing(false);
               }}
             />
             <CancelButton
               onCancel={() => {
-                setContent({});
+                setContent({ title: "", notes: "" });
                 setEditing(false);
               }}
             />
@@ -201,28 +171,76 @@ function NotesInput({ content, setContent }) {
 }
 
 function TaskRegion({ list }) {
-  const [user, _, __] = useAuthState(auth);
-  const [value, loading, error] = useCollection(
-    collection(getDb(), "users", user?.uid, "listsnew", list, "tasks"),
-  );
+  const [user] = useSupabaseAuth();
+  const [tasks, setTasks] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (!user?.id || !list) {
+      return;
+    }
+
+    let active = true;
+
+    const fetchTasks = async () => {
+      setLoading(true);
+      const { data, error: err } = await supabase
+        .from("tasks")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("list_id", list)
+        .order("id", { ascending: true });
+
+      if (!active) {
+        return;
+      }
+
+      if (err) {
+        setError(err);
+      } else {
+        setTasks(data);
+      }
+      setLoading(false);
+    };
+
+    fetchTasks();
+
+    const subscription = supabase
+      .channel(`tasks:user_id=eq.${user.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "tasks",
+          filter: `user_id=eq.${user.id}`,
+        },
+        () => fetchTasks(),
+      )
+      .subscribe();
+
+    return () => {
+      active = false;
+      subscription.unsubscribe();
+    };
+  }, [user?.id, list]);
 
   return (
     <div className="flex grow gap-4 flex-col">
       {error && <p>Error: {JSON.stringify(error)}</p>}
       {loading && <p>...</p>}
-      {value &&
-        value.docs.map((doc) => {
-          return (
-            <TaskNew
-              key={doc.id}
-              id={doc.id}
-              data={doc.data() || {}}
-              initial={false}
-              list={list}
-              repeating={false}
-            />
-          );
-        })}
+      {tasks &&
+        tasks.map((task) => (
+          <TaskNew
+            key={task.id}
+            id={task.id}
+            data={task || {}}
+            initial={false}
+            list={list}
+            repeating={false}
+          />
+        ))}
     </div>
   );
 }

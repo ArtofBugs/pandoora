@@ -1,15 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faArrowRight,
   faTrashCan,
   faEllipsisVertical,
 } from "@fortawesome/free-solid-svg-icons";
-import { useFloating } from "@floating-ui/react-dom";
 
-import { updateTask } from "./update-utils";
-import TaskPopup from "./TaskPopup";
-import { SaveButton, CancelButton, EditButton, DeleteButton } from "./Common";
 import {
   createTaskNew,
   updateTaskNew,
@@ -17,32 +13,14 @@ import {
   NOTES_PLACEHOLDER,
   TASK_FIELDS,
 } from "./task-utils";
-
-import {
-  collection,
-  updateDoc,
-  deleteDoc,
-  arrayUnion,
-  arrayRemove,
-  query,
-  where,
-  getDocs,
-  getDoc,
-} from "firebase/firestore";
-import { useDocument, useCollection } from "react-firebase-hooks/firestore";
-import { useAuthState } from "react-firebase-hooks/auth";
-
-import getDb, { auth } from "../firebase/initialize";
+import { SaveButton, CancelButton, EditButton, DeleteButton } from "./Common";
+import { useSupabaseAuth } from "../supabase/useSupabaseAuth";
+import { supabase } from "../supabase/client";
 
 export function TaskNew({ data, initial, id, list, repeating }) {
-  const [editing, setEditing] = useState(initial ?? false); // set false if undefined
+  const [editing, setEditing] = useState(initial ?? false);
   const [content, setContent] = useState(data ?? {});
   const [collapseOpen, setCollapseOpen] = useState(false);
-  console.log(editing);
-  console.log("content");
-  console.log(content);
-  console.log("data");
-  console.log(data);
 
   return (
     <div
@@ -51,13 +29,11 @@ export function TaskNew({ data, initial, id, list, repeating }) {
         (collapseOpen ? " collapse-open" : "")
       }
     >
-      {/* Header */}
       <div
         className={"collapse-title font-semibold"}
         onClick={() => setCollapseOpen(!collapseOpen)}
       >
         <div className="flex flex-row gap-2">
-          {/* Checkbox */}
           <input
             type="checkbox"
             checked={data.completed}
@@ -69,7 +45,6 @@ export function TaskNew({ data, initial, id, list, repeating }) {
               updateTaskNew(list, id, { completed: !data.completed }, repeating)
             }
           />
-          {/* Title */}
           {editing ? (
             <TitleInput content={content} setContent={setContent} />
           ) : (
@@ -89,11 +64,9 @@ export function TaskNew({ data, initial, id, list, repeating }) {
           )}
         </div>
       </div>
-      {/* Content */}
       <form className="collapse-content text-sm flex flex-col gap-10">
         <div className="flex flex-row gap-4">
           <div className="flex flex-col gap-4">
-            {/* Time */}
             <fieldset className="fieldset flex-1">
               <TimeArea
                 content={content}
@@ -101,7 +74,6 @@ export function TaskNew({ data, initial, id, list, repeating }) {
                 editing={editing}
               />
             </fieldset>
-            {/* Repeating */}
             <fieldset className="fieldset">
               <RepeatArea
                 content={content}
@@ -109,7 +81,6 @@ export function TaskNew({ data, initial, id, list, repeating }) {
                 editing={editing}
               />
             </fieldset>
-            {/* Earns */}
             <fieldset className="flex flex-row gap-2 justify-start align-middle">
               <EarnsLabel />
               {editing ? (
@@ -119,7 +90,6 @@ export function TaskNew({ data, initial, id, list, repeating }) {
               )}
             </fieldset>
           </div>
-          {/* Notes */}
           <fieldset className="fieldset flex-1 flex">
             {editing ? (
               <NotesInput content={content} setContent={setContent} />
@@ -129,7 +99,6 @@ export function TaskNew({ data, initial, id, list, repeating }) {
           </fieldset>
         </div>
         <div>
-          {/* Buttons */}
           <div>
             {editing ? (
               <SubmissionContainer>
@@ -166,8 +135,6 @@ export function TaskNew({ data, initial, id, list, repeating }) {
 export function NewTask({ list, setEditing, repeating }) {
   const [content, setContent] = useState(TASK_FIELDS);
   const [collapseOpen, setCollapseOpen] = useState(true);
-  console.log("content");
-  console.log(content);
 
   return (
     <div
@@ -176,19 +143,15 @@ export function NewTask({ list, setEditing, repeating }) {
         (collapseOpen ? " collapse-open" : "")
       }
     >
-      {/* Header */}
       <div
         className="collapse-title font-semibold"
         onClick={() => setCollapseOpen(!collapseOpen)}
       >
-        {/* Title */}
         <TitleInput content={content} setContent={setContent} />
       </div>
-      {/* Content */}
       <form className="collapse-content text-sm flex flex-col gap-10">
         <div className="flex flex-row gap-4">
           <div className="flex flex-col gap-4">
-            {/* Time */}
             <fieldset className="fieldset flex-1">
               <TimeArea
                 content={content}
@@ -196,7 +159,6 @@ export function NewTask({ list, setEditing, repeating }) {
                 editing={true}
               />
             </fieldset>
-            {/* Repeating */}
             <fieldset className="fieldset">
               <RepeatArea
                 content={content}
@@ -204,19 +166,16 @@ export function NewTask({ list, setEditing, repeating }) {
                 editing={true}
               />
             </fieldset>
-            {/* Earns */}
             <fieldset className="flex flex-row gap-2 justify-start align-middle">
               <EarnsLabel />
               <EarnsInput content={content} setContent={setContent} />
             </fieldset>
           </div>
-          {/* Notes */}
           <fieldset className="fieldset flex-1 flex">
             <NotesInput content={content} setContent={setContent} />
           </fieldset>
         </div>
         <div>
-          {/* Buttons */}
           <div>
             <SubmissionContainer>
               <OverwriteDropdown setContent={setContent} />
@@ -229,7 +188,7 @@ export function NewTask({ list, setEditing, repeating }) {
               />
               <CancelButton
                 onCancel={() => {
-                  setContent({});
+                  setContent(TASK_FIELDS);
                   setEditing(false);
                 }}
               />
@@ -353,7 +312,7 @@ function HoursDisplay({ hour }) {
   return <p className="text-wrap">{hour}</p>;
 }
 
-function HoursInput({ hour, setHour, hint }) {
+function HoursInput({ hour, setHour }) {
   return (
     <div>
       <input
@@ -362,7 +321,6 @@ function HoursInput({ hour, setHour, hint }) {
         onChange={setHour}
         className="input validator min-w-2 w-min"
       ></input>
-      {/* <div className="validator-hint">{hint || "Invalid value."}</div> */}
     </div>
   );
 }
@@ -375,7 +333,7 @@ function EarnsDisplay({ earns }) {
   return <h1 className={"w-full h-full"}>{earns ?? ""}</h1>;
 }
 
-function EarnsInput({ content, setContent, hint }) {
+function EarnsInput({ content, setContent }) {
   return (
     <div>
       <input
@@ -384,7 +342,6 @@ function EarnsInput({ content, setContent, hint }) {
         onChange={(e) => setContent({ ...content, earns: e.target.value })}
         className="input validator w-min"
       ></input>
-      {/* <div className="validator-hint">{hint || "Invalid value."}</div> */}
     </div>
   );
 }
@@ -399,11 +356,11 @@ function RepeatArea({ content, setContent, editing }) {
           key={i}
           text={day}
           editing={editing}
-          repeat={content.repeats[day] ?? false}
+          repeat={content.repeats?.[day] ?? false}
           toggleRepeat={() =>
             setContent({
               ...content,
-              repeats: { ...content.repeats, [day]: !content.repeats[day] },
+              repeats: { ...content.repeats, [day]: !content.repeats?.[day] },
             })
           }
         />
@@ -440,14 +397,55 @@ function SubmissionContainer({ children }) {
 }
 
 function OverwriteDropdown({ setContent }) {
-  const [user, _, __] = useAuthState(auth);
-  const [repeats, loading, error] = useCollection(
-    collection(getDb(), "users", user?.uid, "repeats"),
-  );
+  const [user] = useSupabaseAuth();
+  const [repeats, setRepeats] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  if (error) {
-    console.error("Error retrieving repeating tasks for dropdown:", error);
-  }
+  useEffect(() => {
+    if (!user?.id) return;
+
+    let active = true;
+
+    const fetchRepeats = async () => {
+      const { data, error: err } = await supabase
+        .from("repeats")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("id", { ascending: true });
+
+      if (!active) return;
+
+      if (err) {
+        setError(err);
+      } else {
+        setRepeats(data);
+      }
+      setLoading(false);
+    };
+
+    fetchRepeats();
+
+    const subscription = supabase
+      .channel(`repeats:user_id=eq.${user.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "repeats",
+          filter: `user_id=eq.${user.id}`,
+        },
+        () => fetchRepeats(),
+      )
+      .subscribe();
+
+    return () => {
+      active = false;
+      subscription.unsubscribe();
+    };
+  }, [user?.id]);
+
   return (
     <div className="dropdown dropdown-top">
       <div tabIndex={0} role="button" className="btn btn-ghost rounded-full ">
@@ -459,23 +457,31 @@ function OverwriteDropdown({ setContent }) {
       >
         <li>
           <select
-            defaultValue="Replace with repeating template"
+            defaultValue=""
             className="select w-min"
+            onChange={(e) => {
+              const choice = repeats?.find(
+                (item) => String(item.id) === e.target.value,
+              );
+              if (choice) {
+                setContent(choice);
+              }
+            }}
           >
-            <option disabled={true}>Replace with repeating template</option>
-            {loading && <option disabled={true}>Loading templates...</option>}
+            <option value="" disabled>
+              Replace with repeating template
+            </option>
+            {loading && <option disabled>Loading templates...</option>}
             {repeats &&
-              repeats.docs.map((doc) => {
-                const data = doc.data();
-                return (
-                  <option key={doc.id} onClick={() => setContent(data)}>
-                    {data.title}
-                  </option>
-                );
-              })}
+              repeats.map((repeat) => (
+                <option key={repeat.id} value={repeat.id}>
+                  {repeat.title}
+                </option>
+              ))}
           </select>
         </li>
       </ul>
+      {error && <p className="text-error">Error loading templates.</p>}
     </div>
   );
 }

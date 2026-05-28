@@ -1,129 +1,74 @@
-import {
-  doc,
-  collection,
-  addDoc,
-  updateDoc,
-  deleteDoc,
-  arrayUnion,
-} from 'firebase/firestore'
+import { supabase } from '../supabase/client'
 
-import getDb, { auth } from '../firebase/initialize'
-
-export async function createTaskNew(list, content, repeating) {
-  // For model-accurate repeating tasks, I need canonical tasks with
-  // lists pointing to tasks as references...
-  // yes, looping single reads would be more expensive than
-  // simply querying I would think,
-  // and I can't think of any better way to do this.
-  // What Firebase is lacking is a way for a single object to belong
-  // to multiple groups. I maybe should have used a different database
-  // engine. If you know of any better ones that could fit this
-  // model better, send me an issue!
-  // Either way, I'm instead going to scrap this idea,
-  // because I like to make tasks that repeat from a template but
-  // edit individual occurrences, and canonical tasks would edit all
-  // instances of the task. So instead, I'm opting to make repeating
-  // tasks a separate system entirely that represent "templates" for actual tasks.
-  // In the actual task interface, the "Repeat" markers are just visual markers,
-  // not actual links to anything else.
-
-  // The code I had before:
-  // let id = ''
-  // try {
-  //   id = await addDoc(collection(getDb(), 'tasksnew'), content)
-  // } catch (e) {
-  //   console.error('Error adding document:', e)
-  // }
-  // try {
-  //   await updateDoc(doc(getDb(), 'listsnew', list), {
-  //     tasks: arrayUnion(id),
-  //   })
-  // } catch (e) {
-  //   console.error('Error adding id to array:', id, ' because ', e)
-  // }
-
+export async function createTaskNew(userId, list, content, repeating) {
   if (repeating) {
     try {
-      await addDoc(
-        collection(getDb(), 'users', auth.currentUser?.uid, 'repeats'),
-        content
-      )
+      await supabase.from('repeats').insert({
+        user_id: userId,
+        ...content,
+      })
     } catch (e) {
-      console.error('Error adding document:', e)
+      console.error('Error adding repeating task:', e)
     }
   } else {
     try {
-      await addDoc(
-        collection(
-          getDb(),
-          'users',
-          auth.currentUser?.uid,
-          'listsnew',
-          list,
-          'tasks'
-        ),
-        content
-      )
+      await supabase.from('tasks').insert({
+        user_id: userId,
+        list_id: list,
+        ...content,
+      })
     } catch (e) {
-      console.error('Error adding document:', e)
+      console.error('Error adding task:', e)
     }
   }
 }
 
-export async function updateTaskNew(list, task, content, repeating) {
+export async function updateTaskNew(userId, list, task, content, repeating) {
   if (repeating) {
     try {
-      await updateDoc(
-        doc(getDb(), 'users', auth.currentUser?.uid, 'repeats', task),
-        content
-      )
+      await supabase
+        .from('repeats')
+        .update(content)
+        .eq('id', task)
+        .eq('user_id', userId)
     } catch (e) {
-      console.error('Error adding document:', e)
+      console.error('Error updating repeating task:', e)
     }
   } else {
     try {
-      await updateDoc(
-        doc(
-          getDb(),
-          'users',
-          auth.currentUser?.uid,
-          'listsnew',
-          list,
-          'tasks',
-          task
-        ),
-        content
-      )
+      await supabase
+        .from('tasks')
+        .update(content)
+        .eq('id', task)
+        .eq('user_id', userId)
+        .eq('list_id', list)
     } catch (e) {
-      console.error('Error adding document:', e)
+      console.error('Error updating task:', e)
     }
   }
 }
 
-export async function deleteTaskNew(list, task, repeating) {
+export async function deleteTaskNew(userId, list, task, repeating) {
   if (repeating) {
     try {
-      await deleteDoc(
-        doc(getDb(), 'users', auth.currentUser?.uid, 'repeats', task)
-      )
+      await supabase
+        .from('repeats')
+        .delete()
+        .eq('id', task)
+        .eq('user_id', userId)
     } catch (e) {
-      console.error('Error deleting document:', e)
+      console.error('Error deleting repeating task:', e)
     }
   } else {
     try {
-      await deleteDoc(
-        doc(
-          getDb(),
-          'users',
-          auth.currentUser?.uid,
-          'listsnew',
-          list,
-          'tasks',
-          task
-        )
-      )
+      await supabase
+        .from('tasks')
+        .delete()
+        .eq('id', task)
+        .eq('user_id', userId)
+        .eq('list_id', list)
     } catch (e) {
-      console.error('Error deleting document:', e)
+      console.error('Error deleting task:', e)
     }
   }
 }

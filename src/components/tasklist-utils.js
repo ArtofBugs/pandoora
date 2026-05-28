@@ -1,42 +1,41 @@
-import {
-  doc,
-  collection,
-  addDoc,
-  updateDoc,
-  deleteDoc,
-} from 'firebase/firestore'
+import { supabase } from '../supabase/client'
 
-import getDb, { auth } from '../firebase/initialize'
-
-export async function createTaskList(content) {
+export async function createTaskList(userId, content) {
   try {
-    await addDoc(
-      collection(getDb(), 'users', auth.currentUser?.uid, 'listsnew'),
-      content
-    )
+    await supabase.from('task_lists').insert({
+      user_id: userId,
+      title: content.title,
+      notes: content.notes,
+    })
   } catch (e) {
-    console.error('Error adding document:', e)
+    console.error('Error adding task list:', e)
   }
 }
 
-export async function updateTaskList(list, content) {
+export async function updateTaskList(userId, listId, content) {
   try {
-    await updateDoc(
-      doc(getDb(), 'users', auth.currentUser?.uid, 'listsnew', list),
-      content
-    )
+    await supabase
+      .from('task_lists')
+      .update({
+        title: content.title,
+        notes: content.notes,
+      })
+      .eq('id', listId)
+      .eq('user_id', userId)
   } catch (e) {
-    console.error('Error adding document:', e)
+    console.error('Error updating task list:', e)
   }
 }
 
-export async function deleteTaskList(list) {
+export async function deleteTaskList(userId, listId) {
   try {
-    await deleteDoc(
-      doc(getDb(), 'users', auth.currentUser?.uid, 'listsnew', list)
-    )
+    await supabase
+      .from('task_lists')
+      .delete()
+      .eq('id', listId)
+      .eq('user_id', userId)
   } catch (e) {
-    console.error('Error deleting document:', e)
+    console.error('Error deleting task list:', e)
   }
 }
 
