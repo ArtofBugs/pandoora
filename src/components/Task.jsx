@@ -4,6 +4,7 @@ import {
   faArrowRight,
   faTrashCan,
   faEllipsisVertical,
+  faThumbtack,
 } from "@fortawesome/free-solid-svg-icons";
 
 import {
@@ -11,6 +12,7 @@ import {
   updateTaskNew,
   deleteTaskNew,
   NOTES_PLACEHOLDER,
+  setFocusedTask,
   TASK_FIELDS,
 } from "./task-utils";
 import { SaveButton, CancelButton, EditButton, DeleteButton } from "./Common";
@@ -46,6 +48,15 @@ export function TaskNew({ data, initial, id, list }) {
               updateTaskNew(user?.id, id, { completed: !data.completed });
             }}
           />
+          <FontAwesomeIcon
+            icon={faThumbtack}
+            className={`p-2 rounded-full ${data.focus ? "text-gray-800" : "text-gray-300 active:text-gray-600 focus-within:text-gray-600 hover:text-gray-600"}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              setFocusedTask(user?.id, id, data.focus);
+            }}
+          />
+
           {editing ? (
             <TitleInput content={content} setContent={setContent} />
           ) : (

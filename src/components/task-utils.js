@@ -39,6 +39,57 @@ export async function deleteTaskNew(userId, task) {
   }
 }
 
+export async function setFocusedTask(userId, taskId) {
+  try {
+    // Fetch the current task to check its focus status
+    const { data: currentTask, error: fetchError } = await supabase
+      .from('tasks')
+      .select('focus')
+      .eq('id', taskId)
+      .single()
+
+    if (fetchError) {
+      throw fetchError
+    }
+
+    const isCurrentlyFocused = currentTask.focus
+
+    if (isCurrentlyFocused) {
+      // If the clicked task is currently focused, unfocus it
+      await supabase
+        .from('tasks')
+        .update({ focus: false })
+        .eq('id', taskId)
+        .eq('user_id', userId)
+      await supabase
+        .from('settings')
+        .update({ focused_task: null })
+        .eq('user_id', userId)
+    } else {
+      // If the clicked task is not currently focused, make it focused.
+      // First, unfocus any other task that might be focused by this user.
+      await supabase
+        .from('tasks')
+        .update({ focus: false })
+        .eq('user_id', userId)
+        .eq('focus', true)
+      // Then, focus the clicked task
+      await supabase
+        .from('tasks')
+        .update({ focus: true })
+        .eq('id', taskId)
+        .eq('user_id', userId)
+      // Update the 'settings' table to point to the new focused task
+      await supabase
+        .from('settings')
+        .update({ focused_task: taskId })
+        .eq('user_id', userId)
+    }
+  } catch (e) {
+    console.error('Error setting focused task:', e)
+  }
+}
+
 export const NOTES_PLACEHOLDER = 'Notes'
 
 export const TASK_FIELDS = {
