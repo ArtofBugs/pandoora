@@ -61,7 +61,7 @@ export function TaskListNew({ data, initial, id, userId }) {
             )}
           </fieldset>
           <div className="fieldset flex-1">
-            <TaskArea list={id} />
+            <TaskArea userId={userId} list={id} />
           </div>
         </div>
         {editing ? (
@@ -187,9 +187,9 @@ function TaskRegion({ list }) {
       setLoading(true);
       const { data, error: err } = await supabase
         .from("tasks")
-        .select("*")
+        .select("*, lists ( id )")
         .eq("user_id", user.id)
-        .eq("list_id", list)
+        .eq("lists.id", list)
         .order("id", { ascending: true });
 
       if (!active) {
@@ -199,14 +199,28 @@ function TaskRegion({ list }) {
       if (err) {
         setError(err);
       } else {
-        setTasks(data);
+        setTasks(data ?? []);
       }
       setLoading(false);
     };
 
     fetchTasks();
 
-    const subscription = supabase
+    const relationshipSubscription = supabase
+      .channel(`list_task_relationships:list=eq.${list}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "list_task_relationships",
+          filter: `list=eq.${list}`,
+        },
+        () => fetchTasks(),
+      )
+      .subscribe();
+
+    const taskSubscription = supabase
       .channel(`tasks:user_id=eq.${user.id}`)
       .on(
         "postgres_changes",
@@ -222,7 +236,8 @@ function TaskRegion({ list }) {
 
     return () => {
       active = false;
-      subscription.unsubscribe();
+      relationshipSubscription.unsubscribe();
+      taskSubscription.unsubscribe();
     };
   }, [user?.id, list]);
 
@@ -245,14 +260,19 @@ function TaskRegion({ list }) {
   );
 }
 
-function TaskArea({ list }) {
+function TaskArea({ userId, list }) {
   const [editing, setEditing] = useState(false);
 
   return (
     <div className="border flex grow gap-4 flex-col p-5">
       <TaskRegion list={list} />
       {editing ? (
-        <NewTask list={list} setEditing={setEditing} repeating={false} />
+        <NewTask
+          userId={userId}
+          list={list}
+          setEditing={setEditing}
+          repeating={false}
+        />
       ) : (
         <AddEntryButton onClick={() => setEditing(true)} />
       )}

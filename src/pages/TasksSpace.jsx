@@ -20,7 +20,7 @@ export default function TasksSpace() {
     const fetchLists = async () => {
       setLoading(true);
       const { data, error: err } = await supabase
-        .from("task_lists")
+        .from("lists")
         .select("*")
         .eq("user_id", user.id)
         .order("id", { ascending: true });
@@ -36,16 +36,16 @@ export default function TasksSpace() {
     fetchLists();
 
     const subscription = supabase
-      .channel(`task_lists:user_id=eq.${user.id}`)
+      .channel(`lists:user_id=eq.${user.id}`)
       .on(
         "postgres_changes",
         {
           event: "*",
           schema: "public",
-          table: "task_lists",
+          table: "lists",
           filter: `user_id=eq.${user.id}`,
         },
-        () => fetchLists()
+        () => fetchLists(),
       )
       .subscribe();
 

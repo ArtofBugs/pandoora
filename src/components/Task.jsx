@@ -132,7 +132,7 @@ export function TaskNew({ data, initial, id, list, repeating }) {
   );
 }
 
-export function NewTask({ list, setEditing, repeating }) {
+export function NewTask({ userId, list, setEditing, repeating }) {
   const [content, setContent] = useState(TASK_FIELDS);
   const [collapseOpen, setCollapseOpen] = useState(true);
 
@@ -182,7 +182,7 @@ export function NewTask({ list, setEditing, repeating }) {
               <SaveButton
                 onSave={(e) => {
                   e.preventDefault();
-                  createTaskNew(list, content, repeating);
+                  createTaskNew(userId, list, content, repeating);
                   setEditing(false);
                 }}
               />

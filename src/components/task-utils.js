@@ -12,10 +12,17 @@ export async function createTaskNew(userId, list, content, repeating) {
     }
   } else {
     try {
-      await supabase.from('tasks').insert({
-        user_id: userId,
+      const res = await supabase
+        .from('tasks')
+        .insert({
+          user_id: userId,
+          ...content,
+        })
+        .select('id')
+        .single()
+      await supabase.from('list_task_relationships').insert({
         list_id: list,
-        ...content,
+        task_id: res.data.id,
       })
     } catch (e) {
       console.error('Error adding task:', e)
@@ -41,7 +48,6 @@ export async function updateTaskNew(userId, list, task, content, repeating) {
         .update(content)
         .eq('id', task)
         .eq('user_id', userId)
-        .eq('list_id', list)
     } catch (e) {
       console.error('Error updating task:', e)
     }
@@ -61,12 +67,7 @@ export async function deleteTaskNew(userId, list, task, repeating) {
     }
   } else {
     try {
-      await supabase
-        .from('tasks')
-        .delete()
-        .eq('id', task)
-        .eq('user_id', userId)
-        .eq('list_id', list)
+      await supabase.from('tasks').delete().eq('id', task).eq('user_id', userId)
     } catch (e) {
       console.error('Error deleting task:', e)
     }
@@ -78,20 +79,16 @@ export const NOTES_PLACEHOLDER = 'Notes'
 export const TASK_FIELDS = {
   title: '',
   notes: '',
-  time: {
-    Estimated: '',
-    Actual: '',
-    Due: '',
-    Finished: '',
-  },
-  repeats: {
-    Su: false,
-    M: false,
-    Tu: false,
-    W: false,
-    Th: false,
-    F: false,
-    Sa: false,
-  },
-  earns: '',
+  target_time: '',
+  actual_time: '',
+  // repeats: {
+  //   Su: false,
+  //   M: false,
+  //   Tu: false,
+  //   W: false,
+  //   Th: false,
+  //   F: false,
+  //   Sa: false,
+  // },
+  // earns: '',
 }
