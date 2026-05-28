@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
+import { supabase } from "../supabase/client";
 import { updatePeriod, deletePeriod } from "./calendar-utils";
+import { getTasksForUser } from "./task-utils";
 import { DeleteButton } from "./Common";
 
 export function EditPeriodModal({
@@ -14,6 +16,8 @@ export function EditPeriodModal({
   const [endTime, setEndTime] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [availableTasks, setAvailableTasks] = useState([]);
+  const [selectedTaskIds, setSelectedTaskIds] = useState([]);
 
   // format a Date into a value suitable for <input type="datetime-local"> (local time)
   const formatForInput = (d) => {
@@ -40,6 +44,12 @@ export function EditPeriodModal({
       );
       setError(null);
       setLoading(false);
+
+      setSelectedTaskIds(initialPeriod.tasks?.map((t) => t.id) || []);
+
+      getTasksForUser(initialPeriod.user_id).then(({ data }) => {
+        setAvailableTasks(data || []);
+      });
     }
   }, [isOpen, initialPeriod]);
 
@@ -65,12 +75,28 @@ export function EditPeriodModal({
       title,
       type,
     );
-
-    setLoading(false);
-
     if (result && result.error) {
       setError(result.error.message || "Error updating period.");
+      setLoading(false);
     } else {
+      // Update task associations
+      // 1. Remove current associations for this period to ensure consistency
+      await supabase
+        .from("tasks")
+        .update({ work_period: null })
+        .eq("work_period", initialPeriod.id)
+        .eq("user_id", initialPeriod.user_id);
+
+      // 2. Apply new associations
+      if (selectedTaskIds.length > 0) {
+        await supabase
+          .from("tasks")
+          .update({ work_period: initialPeriod.id })
+          .in("id", selectedTaskIds)
+          .eq("user_id", initialPeriod.user_id);
+      }
+
+      setLoading(false);
       onPeriodUpdated();
       onClose();
     }
@@ -82,6 +108,14 @@ export function EditPeriodModal({
       return;
     }
     setLoading(true);
+
+    // Unlink tasks before deletion
+    await supabase
+      .from("tasks")
+      .update({ work_period: null })
+      .eq("work_period", initialPeriod.id)
+      .eq("user_id", initialPeriod.user_id);
+
     const result = await deletePeriod(initialPeriod.id);
     setLoading(false);
     if (result && result.error) {
@@ -134,18 +168,34 @@ export function EditPeriodModal({
             </select>
           </div>
 
-          {initialPeriod?.tasks?.length > 0 && (
-            <div className="mb-4">
-              <p className="block text-gray-700 text-sm font-bold mb-2">
-                Associated Tasks:
-              </p>
-              <ul className="list-disc list-inside text-sm text-gray-600">
-                {initialPeriod.tasks.map((task) => (
-                  <li key={task.id}>{task.title}</li>
-                ))}
-              </ul>
-            </div>
-          )}
+          <div className="mb-4">
+            <label
+              htmlFor="tasks"
+              className="block text-gray-700 text-sm font-bold mb-2"
+            >
+              Associate Tasks:
+            </label>
+            <select
+              id="tasks"
+              multiple
+              className="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline min-h-24"
+              value={selectedTaskIds}
+              onChange={(e) =>
+                setSelectedTaskIds(
+                  Array.from(
+                    e.target.selectedOptions,
+                    (option) => option.value,
+                  ),
+                )
+              }
+            >
+              {availableTasks.map((task) => (
+                <option key={task.id} value={task.id}>
+                  {task.title}
+                </option>
+              ))}
+            </select>
+          </div>
 
           <div className="mb-4">
             <label
