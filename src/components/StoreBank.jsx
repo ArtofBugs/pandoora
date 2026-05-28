@@ -28,8 +28,8 @@ function StoreBankCard(props) {
   const [toUse, setToUse] = useState(0);
 
   return (
-    <div className="card bg-primary-content w-30 m-5">
-      <div className="card-body">
+    <div className="card bg-primary-content m-5">
+      <div className="card-body p-10">
         <h3 className="card-title">{props.item.name}</h3>
         <p>Available: {props.item.claimed}</p>
 
