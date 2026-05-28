@@ -16,25 +16,25 @@ export function NewPeriodModal({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  // format a Date (or date-like) into a value suitable for <input type="datetime-local">
+  const formatForInput = (d) => {
+    if (!d) return "";
+    const dt = d instanceof Date ? d : new Date(d);
+    const pad = (n) => String(n).padStart(2, "0");
+    return `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(
+      dt.getDate(),
+    )}T${pad(dt.getHours())}:${pad(dt.getMinutes())}`;
+  };
+
   useEffect(() => {
     if (isOpen) {
-      // Format initialStart and initialEnd to datetime-local format
-      const formatDateTime = (date) => {
-        if (!date) return "";
-        const d = new Date(date);
-        d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); // Adjust for timezone
-        return d.toISOString().slice(0, 16);
-      };
+      // populate inputs in the user's local timezone (datetime-local expects local)
       setTitle("");
       setType("work");
-      setStartTime(formatDateTime(initialStart));
-      setEndTime(
-        formatDateTime(
-          initialEnd ||
-            new Date(new Date(initialStart).getTime() + 60 * 60 * 1000),
-        ),
-      ); // Default to 1 hour later
+      setStartTime(initialStart ? formatForInput(initialStart) : "");
+      setEndTime(initialEnd ? formatForInput(initialEnd) : "");
       setError(null);
+      setLoading(false);
     }
   }, [isOpen, initialStart, initialEnd]);
 

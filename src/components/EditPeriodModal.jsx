@@ -15,19 +15,31 @@ export function EditPeriodModal({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  // format a Date into a value suitable for <input type="datetime-local"> (local time)
+  const formatForInput = (d) => {
+    if (!d) return "";
+    const dt = d instanceof Date ? d : new Date(d);
+    const pad = (n) => String(n).padStart(2, "0");
+    return `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(
+      dt.getDate(),
+    )}T${pad(dt.getHours())}:${pad(dt.getMinutes())}`;
+  };
+
   useEffect(() => {
     if (isOpen && initialPeriod) {
-      const formatDateTime = (date) => {
-        if (!date) return "";
-        const d = new Date(date);
-        d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); // Adjust for timezone
-        return d.toISOString().slice(0, 16);
-      };
       setTitle(initialPeriod.title || "");
       setType(initialPeriod.type || "work");
-      setStartTime(formatDateTime(initialPeriod.start_time));
-      setEndTime(formatDateTime(initialPeriod.end_time));
+      // initialPeriod.start_time/end_time are ISO strings in UTC
+      setStartTime(
+        initialPeriod.start_time
+          ? formatForInput(initialPeriod.start_time)
+          : "",
+      );
+      setEndTime(
+        initialPeriod.end_time ? formatForInput(initialPeriod.end_time) : "",
+      );
       setError(null);
+      setLoading(false);
     }
   }, [isOpen, initialPeriod]);
 
@@ -42,6 +54,7 @@ export function EditPeriodModal({
       return;
     }
 
+    // convert local-datetime input back to an ISO timestamp (UTC) for storage
     const updatedStartTime = new Date(startTime).toISOString();
     const updatedEndTime = new Date(endTime).toISOString();
 
@@ -53,7 +66,7 @@ export function EditPeriodModal({
       type,
     );
 
-    setLoading(false); // Set loading to false before checking for error
+    setLoading(false);
 
     if (result && result.error) {
       setError(result.error.message || "Error updating period.");

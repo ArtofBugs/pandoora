@@ -68,6 +68,7 @@ export default function CalendarSpace() {
   const activeError = authError || error;
 
   const handleTimeRangeSelected = (args) => {
+    // use DayPilot-provided JS Date to preserve browser local timezone
     setModalInitialStart(args.start.toDate());
     setModalInitialEnd(args.end.toDate());
     setIsModalOpen(true);
@@ -194,11 +195,13 @@ const Calendar = ({
 
   return (
     <DayPilotCalendar
+      timeZone="Browser"
       events={periods.map((period) => ({
         id: period.id,
         text: period.title,
-        start: period.start_time,
-        end: period.end_time,
+        // use DayPilot.Date(...).toString() so DayPilot interprets the instant properly in Browser timezone
+        start: new DayPilot.Date(new Date(period.start_time)).toString(),
+        end: new DayPilot.Date(new Date(period.end_time)).toString(),
         backColor: period.type === "work" ? "lightblue" : "gold",
       }))}
       viewType="Week"
