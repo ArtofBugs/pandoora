@@ -7,14 +7,14 @@ export async function getPeriods(userId) {
 
   const { data, error } = await supabase
     .from('calendar')
-    .select('*')
+    .select('*, tasks(id, title)')
     .eq('user_id', userId)
     .order('start_time', { ascending: true })
 
   return { data, error }
 }
 
-export async function createPeriod(type, start_time, end_time) {
+export async function createPeriod(type, start_time, end_time, title) {
   const {
     data: { user },
     error: authError,
@@ -25,14 +25,18 @@ export async function createPeriod(type, start_time, end_time) {
     return null
   }
 
-  const { data, error } = await supabase.from('calendar').insert([
-    {
-      type: type,
-      start_time: start_time,
-      end_time: end_time,
-      user_id: user.id,
-    },
-  ])
+  const { data, error } = await supabase
+    .from('calendar')
+    .insert([
+      {
+        type: type,
+        start_time: start_time,
+        end_time: end_time,
+        title: title,
+        user_id: user.id,
+      },
+    ])
+    .select()
 
   if (error) {
     console.error('Error adding calendar period:', error)

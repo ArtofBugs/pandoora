@@ -134,6 +134,19 @@ export function EditPeriodModal({
             </select>
           </div>
 
+          {initialPeriod?.tasks?.length > 0 && (
+            <div className="mb-4">
+              <p className="block text-gray-700 text-sm font-bold mb-2">
+                Associated Tasks:
+              </p>
+              <ul className="list-disc list-inside text-sm text-gray-600">
+                {initialPeriod.tasks.map((task) => (
+                  <li key={task.id}>{task.title}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           <div className="mb-4">
             <label
               htmlFor="start_time"

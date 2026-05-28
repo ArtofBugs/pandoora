@@ -198,7 +198,11 @@ const Calendar = ({
       timeZone="Browser"
       events={periods.map((period) => ({
         id: period.id,
-        text: period.title,
+        text: `${period.title}${
+          period.tasks?.length > 0
+            ? "\n" + period.tasks.map((t) => t.title).join(", ")
+            : ""
+        }`,
         // use DayPilot.Date(...).toString() so DayPilot interprets the instant properly in Browser timezone
         start: new DayPilot.Date(new Date(period.start_time)).toString(),
         end: new DayPilot.Date(new Date(period.end_time)).toString(),

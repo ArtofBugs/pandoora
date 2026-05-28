@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { supabase } from "../supabase/client"; // Assuming supabase client is accessible here
+import { supabase } from "../supabase/client";
+import { getTasksForUser } from "./task-utils";
 
 export function NewPeriodModal({
   isOpen,
@@ -15,6 +16,8 @@ export function NewPeriodModal({
   const [endTime, setEndTime] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [availableTasks, setAvailableTasks] = useState([]);
+  const [selectedTaskIds, setSelectedTaskIds] = useState([]);
 
   // format a Date (or date-like) into a value suitable for <input type="datetime-local">
   const formatForInput = (d) => {
@@ -35,6 +38,11 @@ export function NewPeriodModal({
       setEndTime(initialEnd ? formatForInput(initialEnd) : "");
       setError(null);
       setLoading(false);
+      setSelectedTaskIds([]);
+
+      getTasksForUser(userId).then(({ data }) => {
+        setAvailableTasks(data || []);
+      });
     }
   }, [isOpen, initialStart, initialEnd]);
 
@@ -53,13 +61,23 @@ export function NewPeriodModal({
 
     const { data, error: supabaseError } = await supabase
       .from("calendar")
-      .insert([newPeriod]);
-
-    setLoading(false);
+      .insert([newPeriod])
+      .select();
 
     if (supabaseError) {
       setError(supabaseError.message);
+      setLoading(false);
     } else {
+      const createdPeriodId = data[0].id;
+      if (selectedTaskIds.length > 0) {
+        await supabase
+          .from("tasks")
+          .update({ work_period: createdPeriodId })
+          .in("id", selectedTaskIds)
+          .eq("user_id", userId);
+      }
+
+      setLoading(false);
       onPeriodAdded();
       onClose();
     }
@@ -104,6 +122,35 @@ export function NewPeriodModal({
             >
               <option value="work">Work</option>
               <option value="break">Break</option>
+            </select>
+          </div>
+
+          <div className="mb-4">
+            <label
+              htmlFor="tasks"
+              className="block text-gray-700 text-sm font-bold mb-2"
+            >
+              Associate Tasks:
+            </label>
+            <select
+              id="tasks"
+              multiple
+              className="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline min-h-24"
+              value={selectedTaskIds}
+              onChange={(e) =>
+                setSelectedTaskIds(
+                  Array.from(
+                    e.target.selectedOptions,
+                    (option) => option.value,
+                  ),
+                )
+              }
+            >
+              {availableTasks.map((task) => (
+                <option key={task.id} value={task.id}>
+                  {task.title}
+                </option>
+              ))}
             </select>
           </div>
 

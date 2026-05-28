@@ -90,6 +90,15 @@ export async function setFocusedTask(userId, taskId) {
   }
 }
 
+export async function getTasksForUser(userId) {
+  const { data, error } = await supabase
+    .from('tasks')
+    .select('id, title')
+    .eq('user_id', userId)
+    .order('title', { ascending: true })
+  return { data, error }
+}
+
 export const NOTES_PLACEHOLDER = 'Notes'
 
 export const TASK_FIELDS = {
