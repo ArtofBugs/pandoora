@@ -142,6 +142,23 @@ function SignInButton({ user, loading, error }) {
 async function signInAction() {
   try {
     await supabase.auth.signInWithOAuth({ provider: "google" });
+    // After successful sign-in, add an entry to the settings table for the new user
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+    if (userError) {
+      console.error("Error getting user after sign-in:", userError);
+      return;
+    }
+    if (user) {
+      await supabase.from("settings").insert({
+        user_id: user.id,
+        focused_task: null,
+        dark_mode: false,
+        reward_currency: 0,
+      });
+    }
   } catch (e) {
     console.error("Sign-in error:", e);
   }
