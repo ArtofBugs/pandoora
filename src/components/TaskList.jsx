@@ -254,6 +254,19 @@ function TaskRegion({ list }) {
             initial={false}
             list={list}
             repeating={false}
+            onDeleteSuccess={() => {
+              const fetchTasks = async () => {
+                setLoading(true);
+                const { data, error: err } = await supabase
+                  .from("tasks")
+                  .select("*, lists ( id )")
+                  .eq("user_id", user.id)
+                  .eq("lists.id", list)
+                  .order("id", { ascending: true });
+                if (!err) setTasks(data ?? []);
+              };
+              fetchTasks();
+            }}
           />
         ))}
     </div>

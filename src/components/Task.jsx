@@ -17,7 +17,14 @@ import { SaveButton, CancelButton, EditButton, DeleteButton } from "./Common";
 import { useSupabaseAuth } from "../supabase/useSupabaseAuth";
 import { supabase } from "../supabase/client";
 
-export function TaskNew({ data, initial, id, list, repeating }) {
+export function TaskNew({
+  data,
+  initial,
+  id,
+  list,
+  repeating,
+  onDeleteSuccess,
+}) {
   const [user] = useSupabaseAuth();
   const [editing, setEditing] = useState(initial ?? false);
   const [content, setContent] = useState(data ?? {});
@@ -123,8 +130,10 @@ export function TaskNew({ data, initial, id, list, repeating }) {
                   }}
                 />
                 <DeleteButton
-                  onDelete={() => {
-                    deleteTaskNew(user?.id, id, repeating);
+                  onDelete={async () => {
+                    await deleteTaskNew(user?.id, id, repeating);
+                    setEditing(false);
+                    onDeleteSuccess?.();
                   }}
                 />
               </SubmissionContainer>
@@ -402,92 +411,92 @@ function SubmissionContainer({ children }) {
   return <div className="flex justify-end gap-4 h-max">{children}</div>;
 }
 
-function OverwriteDropdown({ setContent }) {
-  const [user] = useSupabaseAuth();
-  const [repeats, setRepeats] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+// function OverwriteDropdown({ setContent }) {
+//   const [user] = useSupabaseAuth();
+//   const [repeats, setRepeats] = useState(null);
+//   const [loading, setLoading] = useState(true);
+//   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    if (!user?.id) return;
+//   useEffect(() => {
+//     if (!user?.id) return;
 
-    let active = true;
+//     let active = true;
 
-    const fetchRepeats = async () => {
-      const { data, error: err } = await supabase
-        .from("repeats")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("id", { ascending: true });
+//     const fetchRepeats = async () => {
+//       const { data, error: err } = await supabase
+//         .from("repeats")
+//         .select("*")
+//         .eq("user_id", user.id)
+//         .order("id", { ascending: true });
 
-      if (!active) return;
+//       if (!active) return;
 
-      if (err) {
-        setError(err);
-      } else {
-        setRepeats(data);
-      }
-      setLoading(false);
-    };
+//       if (err) {
+//         setError(err);
+//       } else {
+//         setRepeats(data);
+//       }
+//       setLoading(false);
+//     };
 
-    fetchRepeats();
+//     fetchRepeats();
 
-    const subscription = supabase
-      .channel(`repeats:user_id=eq.${user.id}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "repeats",
-          filter: `user_id=eq.${user.id}`,
-        },
-        () => fetchRepeats(),
-      )
-      .subscribe();
+//     const subscription = supabase
+//       .channel(`repeats:user_id=eq.${user.id}`)
+//       .on(
+//         "postgres_changes",
+//         {
+//           event: "*",
+//           schema: "public",
+//           table: "repeats",
+//           filter: `user_id=eq.${user.id}`,
+//         },
+//         () => fetchRepeats(),
+//       )
+//       .subscribe();
 
-    return () => {
-      active = false;
-      subscription.unsubscribe();
-    };
-  }, [user?.id]);
+//     return () => {
+//       active = false;
+//       subscription.unsubscribe();
+//     };
+//   }, [user?.id]);
 
-  return (
-    <div className="dropdown dropdown-top">
-      <div tabIndex={0} role="button" className="btn btn-ghost rounded-full ">
-        <FontAwesomeIcon icon={faEllipsisVertical} />
-      </div>
-      <ul
-        tabIndex="-1"
-        className="dropdown-content menu bg-base-100 rounded-box z-0 w-52 p-0 shadow-sm"
-      >
-        <li>
-          <select
-            defaultValue=""
-            className="select w-min"
-            onChange={(e) => {
-              const choice = repeats?.find(
-                (item) => String(item.id) === e.target.value,
-              );
-              if (choice) {
-                setContent(choice);
-              }
-            }}
-          >
-            <option value="" disabled>
-              Replace with repeating template
-            </option>
-            {loading && <option disabled>Loading templates...</option>}
-            {repeats &&
-              repeats.map((repeat) => (
-                <option key={repeat.id} value={repeat.id}>
-                  {repeat.title}
-                </option>
-              ))}
-          </select>
-        </li>
-      </ul>
-      {error && <p className="text-error">Error loading templates.</p>}
-    </div>
-  );
-}
+//   return (
+//     <div className="dropdown dropdown-top">
+//       <div tabIndex={0} role="button" className="btn btn-ghost rounded-full ">
+//         <FontAwesomeIcon icon={faEllipsisVertical} />
+//       </div>
+//       <ul
+//         tabIndex="-1"
+//         className="dropdown-content menu bg-base-100 rounded-box z-0 w-52 p-0 shadow-sm"
+//       >
+//         <li>
+//           <select
+//             defaultValue=""
+//             className="select w-min"
+//             onChange={(e) => {
+//               const choice = repeats?.find(
+//                 (item) => String(item.id) === e.target.value,
+//               );
+//               if (choice) {
+//                 setContent(choice);
+//               }
+//             }}
+//           >
+//             <option value="" disabled>
+//               Replace with repeating template
+//             </option>
+//             {loading && <option disabled>Loading templates...</option>}
+//             {repeats &&
+//               repeats.map((repeat) => (
+//                 <option key={repeat.id} value={repeat.id}>
+//                   {repeat.title}
+//                 </option>
+//               ))}
+//           </select>
+//         </li>
+//       </ul>
+//       {error && <p className="text-error">Error loading templates.</p>}
+//     </div>
+//   );
+// }
