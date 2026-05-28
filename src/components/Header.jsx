@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation, NavLink } from "react-router-dom";
 
 // import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -11,6 +11,52 @@ export function Header() {
   const [user, loading, error] = useSupabaseAuth();
   const [focusedTask, setFocusedTask] = useState("None");
   const path = useLocation().pathname.toLowerCase();
+
+  useEffect(() => {
+    if (!user?.id) {
+      setFocusedTask("None");
+      return;
+    }
+
+    const fetchFocusedTaskTitle = async () => {
+      const { data: settings } = await supabase
+        .from("settings")
+        .select("focused_task")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (settings?.focused_task) {
+        const { data: task } = await supabase
+          .from("tasks")
+          .select("title")
+          .eq("id", settings.focused_task)
+          .maybeSingle();
+        setFocusedTask(task?.title || "None");
+      } else {
+        setFocusedTask("None");
+      }
+    };
+
+    fetchFocusedTaskTitle();
+
+    const subscription = supabase
+      .channel(`header-settings-${user.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "settings",
+          filter: `user_id=eq.${user.id}`,
+        },
+        () => fetchFocusedTaskTitle(),
+      )
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [user?.id]);
 
   if (error) {
     console.error("Auth error!");
