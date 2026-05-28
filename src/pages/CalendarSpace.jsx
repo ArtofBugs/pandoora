@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "../supabase/client";
 import { useSupabaseAuth } from "../supabase/useSupabaseAuth";
 import { getPeriods } from "../components/calendar-utils";
+import { DayPilotCalendar } from "@daypilot/daypilot-lite-react";
 
 export default function CalendarSpace() {
   const [user, authLoading, authError] = useSupabaseAuth();
@@ -45,13 +46,13 @@ export default function CalendarSpace() {
     if (!user) return;
 
     const channel = supabase
-      .channel(`log-user-${user.id}`)
+      .channel(`calendar-updates-${user.id}`)
       .on(
         "postgres_changes",
         {
           event: "*",
           schema: "public",
-          table: "log",
+          table: "calendar",
           filter: `user_id=eq.${user.id}`,
         },
         async () => {
@@ -76,6 +77,22 @@ export default function CalendarSpace() {
     <div className="flex grow gap-4 flex-col pl-10 pr-10">
       {activeError && <p>Error: {JSON.stringify(activeError)}</p>}
       {(authLoading || loading) && <p>...</p>}
+      <Calendar periods={periods} />
     </div>
   );
 }
+
+const Calendar = ({ periods }) => {
+  return (
+    <DayPilotCalendar
+      events={periods.map((period) => ({
+        id: period.id,
+        text: period.title,
+        start: period.start_time,
+        end: period.end_time,
+        backColor: period.type === "work" ? "blue" : "gold",
+      }))}
+      viewType="Week"
+    />
+  );
+};
