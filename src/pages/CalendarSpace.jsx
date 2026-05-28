@@ -2,8 +2,9 @@ import { useCallback, useEffect, useState } from "react";
 import { supabase } from "../supabase/client";
 import { useSupabaseAuth } from "../supabase/useSupabaseAuth";
 import { getPeriods, updatePeriod } from "../components/calendar-utils";
-import { DayPilotCalendar } from "@daypilot/daypilot-lite-react";
+import { DayPilotCalendar, DayPilot } from "@daypilot/daypilot-lite-react";
 import { NewPeriodModal } from "../components/NewPeriodModal"; // Import the new modal component
+import { EditPeriodModal } from "../components/EditPeriodModal"; // Import the new modal component
 
 export default function CalendarSpace() {
   const [user, authLoading, authError] = useSupabaseAuth();
@@ -16,6 +17,10 @@ export default function CalendarSpace() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalInitialStart, setModalInitialStart] = useState(null);
   const [modalInitialEnd, setModalInitialEnd] = useState(null);
+
+  // State for the edit modal
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [currentEditingPeriod, setCurrentEditingPeriod] = useState(null);
 
   const loadPeriods = useCallback(async () => {
     if (!user) {
@@ -68,10 +73,23 @@ export default function CalendarSpace() {
     setIsModalOpen(true);
   };
 
+  const handleEventClick = (args) => {
+    const clickedPeriod = periods.find((p) => p.id === args.e.id());
+    if (clickedPeriod) {
+      setCurrentEditingPeriod(clickedPeriod);
+      setIsEditModalOpen(true);
+    }
+  };
+
   const handleModalClose = () => {
     setIsModalOpen(false);
     setModalInitialStart(null);
     setModalInitialEnd(null);
+  };
+
+  const handleEditModalClose = () => {
+    setIsEditModalOpen(false);
+    setCurrentEditingPeriod(null);
   };
 
   const handleEventMoved = useCallback(async (args) => {
@@ -86,6 +104,7 @@ export default function CalendarSpace() {
         periods={periods}
         setPeriods={setPeriods}
         onTimeRangeSelected={handleTimeRangeSelected}
+        onEventClick={handleEventClick}
       />
       {user && (
         <NewPeriodModal
@@ -97,11 +116,24 @@ export default function CalendarSpace() {
           onPeriodAdded={loadPeriods}
         />
       )}
+      {user && (
+        <EditPeriodModal
+          isOpen={isEditModalOpen}
+          onClose={handleEditModalClose}
+          initialPeriod={currentEditingPeriod}
+          onPeriodUpdated={loadPeriods}
+        />
+      )}
     </div>
   );
 }
 
-const Calendar = ({ periods, setPeriods, onTimeRangeSelected }) => {
+const Calendar = ({
+  periods,
+  setPeriods,
+  onTimeRangeSelected,
+  onEventClick,
+}) => {
   const [user, authLoading, authError] = useSupabaseAuth();
 
   const handleEventMoved = async (args) => {
@@ -171,6 +203,7 @@ const Calendar = ({ periods, setPeriods, onTimeRangeSelected }) => {
       }))}
       viewType="Week"
       onTimeRangeSelected={onTimeRangeSelected} // Add the event handler
+      onEventClick={onEventClick}
       timeRangeSelectedHandling="Enabled" // Enable time range selection
       eventMoveHandling="Update" // Enable event dragging
       onEventMoved={handleEventMoved} // Handle event move

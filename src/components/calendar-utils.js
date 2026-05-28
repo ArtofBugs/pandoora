@@ -42,7 +42,7 @@ export async function createPeriod(type, start_time, end_time) {
   return data?.[0] ?? null
 }
 
-export async function updatePeriod(id, start_time, end_time) {
+export async function updatePeriod(id, start_time, end_time, title, type) {
   const {
     data: { user },
     error: authError,
@@ -53,12 +53,21 @@ export async function updatePeriod(id, start_time, end_time) {
     return null
   }
 
+  const updateData = {
+    start_time: start_time,
+    end_time: end_time,
+  }
+
+  if (title !== undefined) {
+    updateData.title = title
+  }
+  if (type !== undefined) {
+    updateData.type = type
+  }
+
   const { data, error } = await supabase
     .from('calendar')
-    .update({
-      start_time: start_time,
-      end_time: end_time,
-    })
+    .update(updateData)
     .eq('id', id)
     .eq('user_id', user.id)
 
