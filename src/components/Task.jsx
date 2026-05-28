@@ -96,9 +96,9 @@ export function TaskNew({ data, initial, id, list }) {
             <fieldset className="flex flex-row gap-2 justify-start align-middle">
               <EarnsLabel />
               {editing ? (
-                <EarnsInput content={content} setContent={setContent} />
+                <RewardsDropdown content={content} setContent={setContent} />
               ) : (
-                <EarnsDisplay earns={content.earns} />
+                <EarnsDisplay rewardId={data.reward} />
               )}
             </fieldset>
           </div>
@@ -181,7 +181,7 @@ export function NewTask({ userId, list, setEditing }) {
             </fieldset> */}
             <fieldset className="flex flex-row gap-2 justify-start align-middle">
               <EarnsLabel />
-              <EarnsInput content={content} setContent={setContent} />
+              <RewardsDropdown content={content} setContent={setContent} />
             </fieldset>
           </div>
           <fieldset className="fieldset flex-1 flex">
@@ -342,20 +342,71 @@ function EarnsLabel({ label }) {
   return <div className="h-min w-min">{label ?? "Earns: "}</div>;
 }
 
-function EarnsDisplay({ earns }) {
-  return <h1 className={"w-full h-full"}>{earns ?? ""}</h1>;
+function EarnsDisplay({ rewardId }) {
+  const [rewardName, setRewardName] = useState("");
+  const [user] = useSupabaseAuth();
+
+  useEffect(() => {
+    if (!rewardId || !user?.id) {
+      setRewardName("");
+      return;
+    }
+
+    const fetchRewardName = async () => {
+      const { data } = await supabase
+        .from("store")
+        .select("name")
+        .eq("id", rewardId)
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (data) {
+        setRewardName(data.name);
+      }
+    };
+
+    fetchRewardName();
+  }, [rewardId, user?.id]);
+
+  return (
+    <h1 className={"w-full h-full"}>{rewardName || (rewardId ? "..." : "")}</h1>
+  );
 }
 
-function EarnsInput({ content, setContent }) {
+function RewardsDropdown({ content, setContent }) {
+  const [user] = useSupabaseAuth();
+  const [rewards, setRewards] = useState([]);
+
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const fetchRewards = async () => {
+      const { data } = await supabase
+        .from("store")
+        .select("id, name")
+        .eq("user_id", user.id)
+        .order("name", { ascending: true });
+      setRewards(data || []);
+    };
+
+    fetchRewards();
+  }, [user?.id]);
+
   return (
-    <div>
-      <input
-        type="text"
-        value={(content && content.earns) || ""}
-        onChange={(e) => setContent({ ...content, earns: e.target.value })}
-        className="input validator w-min"
-      ></input>
-    </div>
+    <select
+      className="select select-bordered select-sm w-min"
+      value={content.reward || ""}
+      onChange={(e) =>
+        setContent({ ...content, reward: e.target.value || null })
+      }
+    >
+      <option value="">None</option>
+      {rewards.map((reward) => (
+        <option key={reward.id} value={reward.id}>
+          {reward.name}
+        </option>
+      ))}
+    </select>
   );
 }
 

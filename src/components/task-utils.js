@@ -99,6 +99,7 @@ export const TASK_FIELDS = {
     'Target time': '',
     'Actual time': '',
   },
+  reward: null,
   // repeats: {
   //   Su: false,
   //   M: false,
