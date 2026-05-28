@@ -1,46 +1,42 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { supabase } from "../supabase/client";
 import { useSupabaseAuth } from "../supabase/useSupabaseAuth";
 import { getPeriods } from "../components/calendar-utils";
-import { DayPilotCalendar } from "@daypilot/daypilot-lite-react";
+import { DayPilotCalendar, DayPilot } from "@daypilot/daypilot-lite-react";
+import { NewPeriodModal } from "../components/NewPeriodModal"; // Import the new modal component
 
 export default function CalendarSpace() {
   const [user, authLoading, authError] = useSupabaseAuth();
   const [periods, setPeriods] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [editing, setEditing] = useState(false);
+  const [editing, setEditing] = useState(false); // This state is not used in the original code, but kept for consistency if needed later.
 
-  useEffect(() => {
+  // State for the new modal
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalInitialStart, setModalInitialStart] = useState(null);
+  const [modalInitialEnd, setModalInitialEnd] = useState(null);
+
+  const loadPeriods = useCallback(async () => {
     if (!user) {
       setPeriods([]);
       setLoading(false);
       return;
     }
 
-    let mounted = true;
-
-    async function loadPeriods() {
-      setLoading(true);
-      const { data, error } = await getPeriods(user.id);
-
-      if (!mounted) return;
-
-      if (error) {
-        setError(error);
-      } else {
-        setPeriods(data || []);
-      }
-
-      setLoading(false);
+    setLoading(true);
+    const { data, error: fetchError } = await getPeriods(user.id);
+    if (fetchError) {
+      setError(fetchError);
+    } else {
+      setPeriods(data || []);
     }
-
-    loadPeriods();
-
-    return () => {
-      mounted = false;
-    };
+    setLoading(false);
   }, [user]);
+
+  useEffect(() => {
+    loadPeriods();
+  }, [user, loadPeriods]);
 
   useEffect(() => {
     if (!user) return;
@@ -55,34 +51,52 @@ export default function CalendarSpace() {
           table: "calendar",
           filter: `user_id=eq.${user.id}`,
         },
-        async () => {
-          const { data, error } = await getPeriods(user.id);
-          if (!error) {
-            setPeriods(data || []);
-          } else {
-            setError(error);
-          }
-        },
+        () => loadPeriods(),
       )
       .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user]);
+  }, [user, loadPeriods]);
 
   const activeError = authError || error;
+
+  const handleTimeRangeSelected = (args) => {
+    setModalInitialStart(args.start.toDate());
+    setModalInitialEnd(args.end.toDate());
+    setIsModalOpen(true);
+  };
+
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+    setModalInitialStart(null);
+    setModalInitialEnd(null);
+  };
 
   return (
     <div className="flex grow gap-4 flex-col pl-10 pr-10">
       {activeError && <p>Error: {JSON.stringify(activeError)}</p>}
       {(authLoading || loading) && <p>...</p>}
-      <Calendar periods={periods} />
+      <Calendar
+        periods={periods}
+        onTimeRangeSelected={handleTimeRangeSelected}
+      />
+      {user && (
+        <NewPeriodModal
+          isOpen={isModalOpen}
+          onClose={handleModalClose}
+          initialStart={modalInitialStart}
+          initialEnd={modalInitialEnd}
+          userId={user.id}
+          onPeriodAdded={loadPeriods}
+        />
+      )}
     </div>
   );
 }
 
-const Calendar = ({ periods }) => {
+const Calendar = ({ periods, onTimeRangeSelected }) => {
   return (
     <DayPilotCalendar
       events={periods.map((period) => ({
@@ -93,6 +107,8 @@ const Calendar = ({ periods }) => {
         backColor: period.type === "work" ? "blue" : "gold",
       }))}
       viewType="Week"
+      onTimeRangeSelected={onTimeRangeSelected} // Add the event handler
+      timeRangeSelectedHandling="Enabled" // Enable time range selection
     />
   );
 };

@@ -9,34 +9,7 @@ export async function getPeriods(userId) {
     .from('calendar')
     .select('*')
     .eq('user_id', userId)
-
-  return { data, error }
-}
-
-export async function getWorkPeriods(userId) {
-  if (!userId) {
-    return { data: [], error: null }
-  }
-
-  const { data, error } = await supabase
-    .from('calendar')
-    .select('*')
-    .eq('type', 'work')
-    .eq('user_id', userId)
-
-  return { data, error }
-}
-
-export async function getBreakPeriods(userId) {
-  if (!userId) {
-    return { data: [], error: null }
-  }
-
-  const { data, error } = await supabase
-    .from('calendar')
-    .select('*')
-    .eq('type', 'break')
-    .eq('user_id', userId)
+    .order('start_time', { ascending: true })
 
   return { data, error }
 }
