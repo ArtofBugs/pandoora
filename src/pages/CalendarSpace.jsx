@@ -84,6 +84,7 @@ export default function CalendarSpace() {
       {(authLoading || loading) && <p>...</p>}
       <Calendar
         periods={periods}
+        setPeriods={setPeriods}
         onTimeRangeSelected={handleTimeRangeSelected}
       />
       {user && (
@@ -100,7 +101,7 @@ export default function CalendarSpace() {
   );
 }
 
-const Calendar = ({ periods, onTimeRangeSelected }) => {
+const Calendar = ({ periods, setPeriods, onTimeRangeSelected }) => {
   const [user, authLoading, authError] = useSupabaseAuth();
 
   const handleEventMoved = async (args) => {
@@ -108,6 +109,21 @@ const Calendar = ({ periods, onTimeRangeSelected }) => {
       console.error("User not authenticated.");
       return;
     }
+
+    // Optimistic UI update:
+    // Update local state immediately so the calendar doesn't "jump" back
+    // while waiting for the database and realtime notification.
+    setPeriods((prev) =>
+      prev.map((period) =>
+        period.id === args.e.id()
+          ? {
+              ...period,
+              start_time: args.newStart.toDate().toISOString(),
+              end_time: args.newEnd.toDate().toISOString(),
+            }
+          : period,
+      ),
+    );
 
     const result = await updatePeriod(
       args.e.id(),
@@ -118,6 +134,21 @@ const Calendar = ({ periods, onTimeRangeSelected }) => {
 
   const handleEventResized = async (args) => {
     if (!user) return;
+
+    // Optimistic UI update:
+    // Update local state immediately so the calendar doesn't "jump" back
+    // while waiting for the database and realtime notification.
+    setPeriods((prev) =>
+      prev.map((period) =>
+        period.id === args.e.id()
+          ? {
+              ...period,
+              start_time: args.newStart.toDate().toISOString(),
+              end_time: args.newEnd.toDate().toISOString(),
+            }
+          : period,
+      ),
+    );
 
     const result = await updatePeriod(
       args.e.id(),
