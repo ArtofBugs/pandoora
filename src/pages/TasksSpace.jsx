@@ -65,6 +65,10 @@ export default function TasksSpace() {
 
   return (
     <div>
+      <div className="flex justify-between ml-10 mr-10 mt-4 mb-2">
+        {/* <RepeatsLink /> */}
+        <StoreLink />
+      </div>
       <div className="flex gap-4 flex-col ml-10 mr-10">
         {editing ? (
           <NewTaskList userId={user.id} setEditing={setEditing} />
@@ -83,10 +87,6 @@ export default function TasksSpace() {
               initial={false}
             />
           ))}
-      </div>
-      <div className="flex justify-between m-10">
-        {/* <RepeatsLink /> */}
-        <StoreLink />
       </div>
     </div>
   );
