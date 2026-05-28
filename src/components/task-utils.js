@@ -1,12 +1,19 @@
 import { supabase } from '../supabase/client'
 
 export async function createTaskNew(userId, list, content) {
+  const finalContent = { ...content }
+  if (finalContent.reward_cost !== null && finalContent.reward_cost !== '') {
+    finalContent.reward = null
+    finalContent.reward_cost = Number(finalContent.reward_cost)
+  } else {
+    finalContent.reward_cost = null
+  }
   try {
     const res = await supabase
       .from('tasks')
       .insert({
         user_id: userId,
-        ...content,
+        ...finalContent,
       })
       .select('id')
       .single()
@@ -20,10 +27,17 @@ export async function createTaskNew(userId, list, content) {
 }
 
 export async function updateTaskNew(userId, task, content) {
+  const finalContent = { ...content }
+  if (finalContent.reward_cost !== null && finalContent.reward_cost !== '') {
+    finalContent.reward = null
+    finalContent.reward_cost = Number(finalContent.reward_cost)
+  } else {
+    finalContent.reward_cost = null
+  }
   try {
     await supabase
       .from('tasks')
-      .update(content)
+      .update(finalContent)
       .eq('id', task)
       .eq('user_id', userId)
   } catch (e) {
@@ -109,6 +123,7 @@ export const TASK_FIELDS = {
     'Actual time': '',
   },
   reward: null,
+  reward_cost: null,
   // repeats: {
   //   Su: false,
   //   M: false,

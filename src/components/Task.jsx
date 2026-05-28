@@ -93,12 +93,15 @@ export function TaskNew({ data, initial, id, list }) {
                 editing={editing}
               /> */}
             </fieldset>
-            <fieldset className="flex flex-row gap-2 justify-start align-middle">
+            <fieldset className="flex flex-row gap-2 justify-start items-center">
               <EarnsLabel />
               {editing ? (
-                <RewardsDropdown content={content} setContent={setContent} />
+                <RewardsArea content={content} setContent={setContent} />
               ) : (
-                <EarnsDisplay rewardId={data.reward} />
+                <EarnsDisplay
+                  rewardId={data.reward}
+                  rewardCost={data.reward_cost}
+                />
               )}
             </fieldset>
           </div>
@@ -179,9 +182,9 @@ export function NewTask({ userId, list, setEditing }) {
                 editing={true}
               />
             </fieldset> */}
-            <fieldset className="flex flex-row gap-2 justify-start align-middle">
+            <fieldset className="flex flex-row gap-2 justify-start items-center">
               <EarnsLabel />
-              <RewardsDropdown content={content} setContent={setContent} />
+              <RewardsArea content={content} setContent={setContent} />
             </fieldset>
           </div>
           <fieldset className="fieldset flex-1 flex">
@@ -345,11 +348,16 @@ function EarnsLabel({ label }) {
   return <div className="h-min w-min">{label ?? "Earns: "}</div>;
 }
 
-function EarnsDisplay({ rewardId }) {
+function EarnsDisplay({ rewardId, rewardCost }) {
   const [rewardName, setRewardName] = useState("");
   const [user] = useSupabaseAuth();
 
   useEffect(() => {
+    if (rewardCost !== null && rewardCost !== undefined) {
+      setRewardName(String(rewardCost));
+      return;
+    }
+
     if (!rewardId || !user?.id) {
       setRewardName("");
       return;
@@ -369,10 +377,10 @@ function EarnsDisplay({ rewardId }) {
     };
 
     fetchRewardName();
-  }, [rewardId, user?.id]);
+  }, [rewardId, rewardCost, user?.id]);
 
   return (
-    <h1 className={"w-full h-full"}>
+    <h1 className={"w-full h-full text-base"}>
       {rewardName || (rewardId ? "..." : "N/A")}
     </h1>
   );
@@ -412,6 +420,62 @@ function RewardsDropdown({ content, setContent }) {
         </option>
       ))}
     </select>
+  );
+}
+
+function RewardsArea({ content, setContent }) {
+  const [isNumerical, setIsNumerical] = useState(
+    content.reward_cost !== null && content.reward_cost !== undefined,
+  );
+
+  const toggleMode = (e) => {
+    e.preventDefault();
+    if (isNumerical) {
+      // Switching to dropdown: clear cost
+      setContent({ ...content, reward_cost: null });
+    } else {
+      // Switching to numerical: clear reward
+      setContent({ ...content, reward: null });
+    }
+    setIsNumerical(!isNumerical);
+  };
+
+  return (
+    <div className="flex flex-row gap-2 items-center">
+      {isNumerical ? (
+        <input
+          type="number"
+          className="input input-bordered input-sm w-24"
+          placeholder="Cost"
+          value={content.reward_cost ?? ""}
+          onChange={(e) =>
+            setContent({
+              ...content,
+              reward_cost: e.target.value,
+              reward: null,
+            })
+          }
+        />
+      ) : (
+        <RewardsDropdown
+          content={content}
+          setContent={(updatedContent) =>
+            setContent({ ...updatedContent, reward_cost: null })
+          }
+        />
+      )}
+      <button
+        type="button"
+        className="btn btn-ghost btn-xs btn-circle"
+        onClick={toggleMode}
+        title={isNumerical ? "Switch to rewards list" : "Enter manual cost"}
+      >
+        <FontAwesomeIcon
+          icon={faArrowRight}
+          className={isNumerical ? "rotate-180" : ""}
+        />
+      </button>
+    </div>
   );
 }
 
