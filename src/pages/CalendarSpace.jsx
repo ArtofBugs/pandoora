@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "../supabase/client";
 import { useSupabaseAuth } from "../supabase/useSupabaseAuth";
-import { getPeriods } from "../components/calendar-utils";
-import { DayPilotCalendar, DayPilot } from "@daypilot/daypilot-lite-react";
+import { getPeriods, updatePeriod } from "../components/calendar-utils";
+import { DayPilotCalendar } from "@daypilot/daypilot-lite-react";
 import { NewPeriodModal } from "../components/NewPeriodModal"; // Import the new modal component
 
 export default function CalendarSpace() {
@@ -74,6 +74,10 @@ export default function CalendarSpace() {
     setModalInitialEnd(null);
   };
 
+  const handleEventMoved = useCallback(async (args) => {
+    // The actual update logic will be in the Calendar component itself
+  }, []);
+
   return (
     <div className="flex grow gap-4 flex-col pl-10 pr-10">
       {activeError && <p>Error: {JSON.stringify(activeError)}</p>}
@@ -97,6 +101,34 @@ export default function CalendarSpace() {
 }
 
 const Calendar = ({ periods, onTimeRangeSelected }) => {
+  const [user, authLoading, authError] = useSupabaseAuth();
+
+  const handleEventMoved = async (args) => {
+    if (!user) {
+      console.error("User not authenticated.");
+      return;
+    }
+
+    const result = await updatePeriod(
+      args.e.id(),
+      args.newStart.toDate().toISOString(),
+      args.newEnd.toDate().toISOString(),
+    );
+  };
+
+  const handleEventResized = async (args) => {
+    if (!user) return;
+
+    const result = await updatePeriod(
+      args.e.id(),
+      args.newStart.toDate().toISOString(),
+      args.newEnd.toDate().toISOString(),
+    );
+    if (result) {
+      console.log("Period resized successfully:", result);
+    }
+  };
+
   return (
     <DayPilotCalendar
       events={periods.map((period) => ({
@@ -104,11 +136,15 @@ const Calendar = ({ periods, onTimeRangeSelected }) => {
         text: period.title,
         start: period.start_time,
         end: period.end_time,
-        backColor: period.type === "work" ? "blue" : "gold",
+        backColor: period.type === "work" ? "lightblue" : "gold",
       }))}
       viewType="Week"
       onTimeRangeSelected={onTimeRangeSelected} // Add the event handler
       timeRangeSelectedHandling="Enabled" // Enable time range selection
+      eventMoveHandling="Update" // Enable event dragging
+      onEventMoved={handleEventMoved} // Handle event move
+      eventResizeHandling="Update" // Enable event resizing
+      onEventResized={handleEventResized} // Handle event resize
     />
   );
 };
