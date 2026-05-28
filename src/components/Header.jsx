@@ -46,6 +46,12 @@ export function Header() {
         </div>
         <div
           role="tab"
+          className={"tab h-full" + (path == "/calendar" ? " tab-active" : "")}
+        >
+          <NavLink to="/calendar">Calendar</NavLink>
+        </div>
+        <div
+          role="tab"
           className={"tab h-full" + (path == "/log" ? " tab-active" : "")}
         >
           <NavLink to="/log">Log</NavLink>
