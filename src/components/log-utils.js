@@ -5,7 +5,11 @@ export async function getLogEntries(userId) {
     return { data: [], error: null }
   }
 
-  const { data, error } = await supabase.from('log').select('*').eq('user_id', userId)
+  const { data, error } = await supabase
+    .from('log')
+    .select('*')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
 
   return { data, error }
 }
@@ -69,7 +73,11 @@ export async function deleteLogEntry(id) {
     return null
   }
 
-  const { error } = await supabase.from('log').delete().eq('id', id).eq('user_id', user.id)
+  const { error } = await supabase
+    .from('log')
+    .delete()
+    .eq('id', id)
+    .eq('user_id', user.id)
 
   if (error) {
     console.error('Error deleting log entry:', error)

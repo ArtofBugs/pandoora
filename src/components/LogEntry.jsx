@@ -77,7 +77,8 @@ export function LogEntry({ data, initial, id }) {
           {editing ? (
             <SubmissionContainer>
               <SaveButton
-                onSave={async () => {
+                onSave={async (e) => {
+                  e.preventDefault();
                   await updateLogEntry(id, content);
                   setEditing(false);
                 }}

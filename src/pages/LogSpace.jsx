@@ -54,7 +54,6 @@ export default function LogSpace() {
           event: "*",
           schema: "public",
           table: "log",
-          filter: `user_id=eq.${user.id}`,
         },
         async () => {
           const { data, error } = await getLogEntries(user.id);
