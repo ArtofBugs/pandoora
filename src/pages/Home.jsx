@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -12,6 +12,8 @@ import { NavLink } from "react-router-dom";
 import { faCalendar } from "@fortawesome/free-regular-svg-icons";
 
 import { useTimer } from "react-timer-hook";
+import { useSupabaseAuth } from "../supabase/useSupabaseAuth";
+import { supabase } from "../supabase/client";
 
 function CountdownInput(props) {
   const [hours, setHours] = useState(0);
@@ -47,7 +49,7 @@ function CountdownInput(props) {
           time.setHours(
             time.getHours() + Number(hours),
             time.getMinutes() + Number(minutes),
-            time.getSeconds() + Number(seconds)
+            time.getSeconds() + Number(seconds),
           );
           console.log(time);
           props.setLocked(true);
@@ -158,13 +160,64 @@ function Menu() {
 
 // FIXME: How can I get the other stuff to not move up when the task details are shown?
 export default function Home() {
+  const [user] = useSupabaseAuth();
+  const [focusedTask, setFocusedTask] = useState(null);
+
+  useEffect(() => {
+    if (!user?.id) {
+      setFocusedTask(null);
+      return;
+    }
+
+    const fetchFocusedTask = async () => {
+      const { data: settings } = await supabase
+        .from("settings")
+        .select("focused_task")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (settings?.focused_task) {
+        const { data: task } = await supabase
+          .from("tasks")
+          .select("title, notes")
+          .eq("id", settings.focused_task)
+          .maybeSingle();
+        setFocusedTask(task);
+      } else {
+        setFocusedTask(null);
+      }
+    };
+
+    fetchFocusedTask();
+
+    const subscription = supabase
+      .channel(`home-settings-${user.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "settings",
+          filter: `user_id=eq.${user.id}`,
+        },
+        () => fetchFocusedTask(),
+      )
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [user?.id]);
+
   return (
     <div className="relative h-screen flex flex-col">
       <Menu />
       <div className="hero justify-center h-full">
-        <div className="hero-content flex-col text-center space-y-5 justify-center">
+        <div className="hero-content flex-col text-center space-y-5 justify-center w-full">
           <h1 className="text-5xl">Focus:</h1>
-          <p className="text-8xl">Hello! Take a break!</p>
+          <p className="text-8xl">
+            {focusedTask?.title || "Hello! Take a break!"}
+          </p>
           <div className="collapse w-2/3">
             <input type="checkbox" />
             <FontAwesomeIcon
@@ -172,14 +225,11 @@ export default function Home() {
               className="collapse-title text-center p-0 font-bold"
             />
             <div className="collapse-content text-left">
-              <p>
-                Description: This part doesn't really work yet, but hopefully it
-                will soon!
-              </p>
+              <p>Description: {focusedTask?.notes || "None"}</p>
               <br />
-              <div>
+              <div className="flex flex-col gap-2">
                 <p>Notes:</p>
-                <textarea defaultValue="https://example.com" />
+                <textarea placeholder="Write notes here!" />
               </div>
             </div>
           </div>
