@@ -151,14 +151,12 @@ async function signInAction() {
       console.error("Error getting user after sign-in:", userError);
       return;
     }
-    if (user) {
-      await supabase.from("settings").insert({
-        user_id: user.id,
-        focused_task: null,
-        dark_mode: false,
-        reward_currency: 0,
-      });
-    }
+    await supabase.from("settings").upsert({
+      user_id: user.id,
+      focused_task: null,
+      dark_mode: false,
+      reward_currency: 0,
+    });
   } catch (e) {
     console.error("Sign-in error:", e);
   }
