@@ -217,9 +217,7 @@ export default function Home() {
       <div className="hero justify-center h-full">
         <div className="hero-content flex-col text-center space-y-5 justify-center w-full">
           <h1 className="text-5xl">Focus:</h1>
-          <p className="text-8xl">
-            {focusedTask?.title || "Hello! Take a break!"}
-          </p>
+          <p className="text-8xl">{focusedTask?.title || "You got this!"}</p>
           <div className="collapse w-2/3">
             <input type="checkbox" />
             <FontAwesomeIcon
